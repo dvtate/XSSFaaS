@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Worker</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+
+        <style>
+            #page {
+                height: 100vh;
+                padding: 0;
+                margin: 0;
+            }
+            #log-view {
+                background-color: black;
+                color: white;
+                overflow-y: scroll;
+                overflow-x: auto;
+                height: 80vh;
+            }
+
+            div.log-status-0 {
+                color: green;
+            }
+            div.log-status-1 {
+                color: white;
+            }
+            div.log-status-2 {
+                color: white;
+            }
+            div.log-status-3 {
+                color: red;
+            }
+            div.log-status-4 {
+                background-color: red;
+                animation: blinker infinite 750ms;
+            }
+            @keyframes blinker {
+                0%,50% { color: black; }
+                51%,100% { color: white; }
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="row" id="page">
+            <div class="col-sm" id="log-col">
+                <fieldset>
+                    <legend>Logs</legend>
+                    <div id="log-view">
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-sm">
+                <div>
+                    <fieldset>
+                        <legend>Statistics</legend>
+                        <div id="stats-view">
+                            TODO
+                        </div>
+                    </fieldset>
+                </div>
+                <div>
+                    <fieldset>
+                        <legend>Selected Item</legend>
+                        <div id="selection-view">
+                            Select an item to see more info.
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>
