@@ -2,7 +2,9 @@ const path = require('path');
 
 // Development watcher
 const devConfig = {
-    entry: './src/index.ts',
+    entry: {
+        worker: './src/worker/index.ts'
+    },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
@@ -29,7 +31,9 @@ const devConfig = {
 // Production build
 const prodConfig = {
     mode: 'production',
-    entry: './src/index.ts',
+    entry: {
+        worker: './src/worker/index.ts'
+    },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },

@@ -4,12 +4,8 @@
       "module": "es6",
       "target": "es5",
       "allowJs": true,
-      "moduleResolution": "node",
+      "moduleResolution": "node"
     },
-    "include": [
-      "src/*"
-    ],
-    "exclude" : [
-      "node_modules", "dist",
-    ]
+    "include": [ "src/*.ts", "src/*/*.ts" ],
+    "exclude" : [ "node_modules", "dist" ]
 }

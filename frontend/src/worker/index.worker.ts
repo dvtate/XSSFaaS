@@ -1,0 +1,1 @@
+// This script gets run by webworker threads

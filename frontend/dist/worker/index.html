@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -34,8 +34,15 @@
                 color: red;
             }
             div.log-status-4 {
-                background-color: red;
+                background-color: darkred;
                 animation: blinker infinite 750ms;
+            }
+            div.log-entry:hover {
+                cursor: pointer;
+                background-color: darkslategrey;
+            }
+            div.log-status-4:hover {
+                background-color: red !important;
             }
             @keyframes blinker {
                 0%,50% { color: black; }
@@ -50,57 +57,57 @@
                 <fieldset>
                     <legend>Logs</legend>
                     <div id="log-view">
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-1">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-0">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-2">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-3">OH FUCK OH SHIT AAAAAA</div>
-                        <div class="log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-1">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-0">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-2">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-3">OH FUCK OH SHIT AAAAAA</div>
+                        <div class="log-entry log-status-4">OH FUCK OH SHIT AAAAAA</div>
                     </div>
                 </fieldset>
             </div>
