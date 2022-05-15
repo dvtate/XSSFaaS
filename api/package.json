@@ -1,0 +1,25 @@
+{
+  "name": "xssaas-api",
+  "version": "1.0.0",
+  "description": "public api server for xssaas",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvtate/xssaas.git"
+  },
+  "author": "dvtate",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dvtate/xssaas/issues"
+  },
+  "homepage": "https://github.com/dvtate/xssaas#readme",
+  "dependencies": {
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "mysql": "^2.18.1"
+  }
+}
