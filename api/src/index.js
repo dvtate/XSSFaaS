@@ -11,14 +11,15 @@ app.use(express.urlencoded({ extended: true }));
 // Subdomain routing middleware
 app.use(require('./subdomains'));
 
-// API routes
-app.use("/api", require('./api'));
+// Endpoints
+app.use("/portal", require('./portal'));
+app.use('/worker', require('./worker'));
 
 // Static pages
 app.use("/", express.static("./static", { fallthrough: true }));
 
 // Start server
-const debug = require("debug")("xtie:server");
+const debug = require("debug")("xss-api:server");
 const port = process.env.PORT || 80;
 if (require.main == module)
     app.listen(port, () =>
