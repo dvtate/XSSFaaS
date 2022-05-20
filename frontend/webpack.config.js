@@ -2,6 +2,7 @@ const path = require('path');
 
 // Development watcher
 const devConfig = {
+    mode: 'development',
     entry: {
         worker: './src/worker/index.ts'
     },
@@ -21,7 +22,6 @@ const devConfig = {
             },
         ],
     },
-    mode: 'development',
     watch: true,
     watchOptions: {
         ignored: /node_modules/,
@@ -37,6 +37,10 @@ const prodConfig = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'main.bundle.js'
+    },
     module: {
         rules: [
             {
@@ -45,10 +49,6 @@ const prodConfig = {
                 exclude: /node_modules/,
             },
         ],
-    },
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'main.bundle.js'
     },
 };
 

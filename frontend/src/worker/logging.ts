@@ -11,7 +11,7 @@ const selectionView = document.getElementById('selection-view');
 /**
  * Relevancy of the log message
  */
-export enum Status {
+export enum LogType {
     W_SUCCESS = 0,      // Job Succeeded
     W_INFO = 1,         // Worker info
     S_INFO = 2,         // System info
@@ -19,12 +19,12 @@ export enum Status {
     S_FATAL = 4,        // System crash
 }
 
-const statusStrings = ['Job Success', 'Worker info', 'System Info', 'Job failure', 'System fatal'];
-
 /**
  * Base class for logs
  */
 export class Log {
+    static Type = LogType
+
     /**
      * Timestamp of when log was created
      */
@@ -36,12 +36,12 @@ export class Log {
     origin?: number
 
     /**
-     * @param status type of log message
+     * @param type type of log message
      * @param message message to display to the user
      * @param stack backtrace to help with debugging
      */
     constructor(
-        public status: Status,
+        public type: LogType,
         public message: string,
         public stack: string = new Error().stack,
         public verbosity: number = 0,
@@ -54,21 +54,22 @@ export class Log {
  * @param log
  */
 export function writeLog(log: Log) {
-    function writePage(log: Log) {
+    // Update page and log queue
+    function writeEntry(log: Log) {
         const div = document.createElement('div');
-        div.classList.add('row', 'log-status-' + log.status);
+        div.classList.add('row', 'log-status-' + log.type);
         div.onclick = () => showLog(log);
         div.innerText = `${log.date.toISOString()}: ${log.message}`;
         logView.appendChild(div);
     }
-
-    writePage(log);
+    writeEntry(log);
     logQueue.push(log);
 
+    // Cap at 50k log entries, keep last 10k
     if (logQueue.length > 50_000) {
         logQueue.splice(-10_000);
         logView.innerHTML = '';
-        logQueue.forEach(writePage);
+        logQueue.forEach(writeEntry);
     }
 }
 
@@ -77,11 +78,13 @@ export function writeLog(log: Log) {
  * @param log log entry
  */
 function showLog(log: Log) {
+    const logTypeStrs = ['Job Success', 'Worker info', 'System Info', 'Job failure', 'System fatal'];
+
     selectionView.innerHTML = `
     <h2>Log Entry</h2>
     <dl>
-        <dt>Status</dt>
-        <dd>${statusStrings[log.status]}</dd>
+        <dt>Type</dt>
+        <dd>${logTypeStrs[log.type]}</dd>
         <dt>Message</dt>
         <dd>${log.message}</dd>
         <dt>Date</dt>
