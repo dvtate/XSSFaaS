@@ -9,9 +9,11 @@ const router = Router();
 
 import { requireAuthMiddleware } from '../auth';
 
-//
-router.get('/enroll/:ncores', requireAuthMiddleware, async (req, res) => {
-    const { ncores } = req.params;
+// Sends data about the worker so that we can add it to database
+// Gives back a workerId
+// WorkerId used to communicate with router and authentication
+router.post('/enlist', requireAuthMiddleware, async (req, res) => {
+    const { ncores } = req.body;
     const userId = String(req.session);
 
     const selectQuery = 'SELECT MAX(workerId) FROM WORKERS;';
@@ -28,6 +30,7 @@ router.get('/enroll/:ncores', requireAuthMiddleware, async (req, res) => {
         );
 
     console.log(workerId);
+
 });
 
 // Write log for task

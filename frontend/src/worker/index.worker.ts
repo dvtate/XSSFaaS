@@ -1,6 +1,6 @@
 // This script gets run by webworker threads
 
-import { API_SERVER_URL } from './globals';
+import { API_SERVER_URL } from '../globals';
 
 import { Task, IPCMessage } from './thread';
 
@@ -37,21 +37,38 @@ async function getFn(id: string) {
 }
 
 
-class WorkerUtils {
-
+class HostUtils {
+    constructor(public task: Task) {}
+    log(m: string) {
+        console.log(m);
+    }
 }
 
 
 async function doTask(t: Task) {
     const f = await getFn(t.fnId);
-    await f(t.additionalData);
+    await f(t.additionalData, new HostUtils(t));
 }
 
 async function main() {
+    // Sleep function
     const delay = async (ms: number): Promise<void> =>
         new Promise(resolve => setTimeout(resolve, ms));
 
-    for ( ;; ) {
-        if (taskQueue)
+
+    // TODO refactor this so that it doesn't tick when no tasks until new message received
+    for (;;) {
+        // Wait until there's a task to do
+        if (taskQueue.length === 0) {
+            await delay(100);
+            continue;
+        }
+
+        // Do task
+        const task = taskQueue.shift();
+        postMessage(new IPCMessage(IPCMessage.Type.C2H_NEXT_TASK));
+        await doTask(task);
     }
 }
+
+main();

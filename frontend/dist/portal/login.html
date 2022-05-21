@@ -28,30 +28,21 @@
         </div>
 
         <div class="container">
-            <h1>XSSaaS</h1>
-            <p>Yet another serverless <a href="https://en.wikipedia.org/wiki/Function_as_a_service" target="_blank">FaaS</a>
-                serverless platform except this one runs your functions in random people's browsers.
-                Or alternatively you could self-host and use your own computer lab.</p>
-
-            <!-- Should probably address Security and Stability as these are kinda spooky -->
-
-            <h2>Technology In Use</h2>
-            <p>XSSaaS uses and enables the use of modern web technology in order to maximize performance and ease of use while
-                avoiding the bloat of many popular frameworks.</p>
-            <ul>
-                <li>Web Workers</li>
-                <li>WebSockets</li>
-                <li>HTML + TypeScript + Webpack (no frameworks)</li>
-                <li>WebAssembly</li>
-            </ul>
+            <h1>Log In</h1>
+            <form>
+                <div class="ms-form-group">
+                    <label for="Email">Email</label>
+                    <input type="email" id="Email" placeholder="Email" />
+                </div>
+                <div class="ms-form-group">
+                    <label for="Password">Password</label>
+                    <input type="password" id="Password" placeholder="Password" />
+                </div>
+                <div><button id="btn-submit" class="ms-primary">Sign In</button></div>
+            </form>
+            <br/>
+            <a href="signup.html">Don't have an account?</a>
+            <br/>
         </div>
-
-        <footer class="ms-footer">
-            <div class="container">
-                <p><a href="https://Github.com/dvtate/xssaas" target="_blank">Proudly Free and Open Source</a>
-                    - <a href="worker/">Worker Page</a>
-                    - <a href="portal/">User Portal</a></p>
-            </div>
-        </footer>
     </body>
 </html>

@@ -3,12 +3,13 @@ import Debugger from 'debug';
 const debug = Debugger('xss:api:portal');
 
 import validator from 'validator';
-import * as db from '../db';
-import { authUserSafe, generateToken, getPasswordHash } from '../auth';
 
+import * as db from '../db';
+import { generateToken, getPasswordHash, requireAuthMiddleware } from '../auth';
+
+// Express Router
 import { Router } from 'express';
 const router = Router();
-
 
 // User signup
 router.post('/user/signup', async (req, res) => {
@@ -50,11 +51,13 @@ router.post('/user/signup', async (req, res) => {
         if (result instanceof Error) {
             if (result.message.match(/Duplicate entry '.+' for key 'PRIMARY'/))
                 continue;
-            return res.status(500).send(result.message);
+            return res.status(500).send(result);
         }
 
         break;
     }
+
+    debug('New user: ', email, name);
 
     // Log the user in
     const token = await generateToken(userId, req.body.stayLoggedIn);
@@ -72,11 +75,62 @@ router.post('/user/login', async (req, res) => {
     }
     if (!user[0])
         return res.status(401).send('wrong email');
-    if (getPasswordHash(user[0].userId, password) === user[0].hashedPassword)
-        return res.send(await generateToken(user[0].userId, stayLoggedIn));
-    else
+    if (getPasswordHash(user[0].userId, password) !== user[0].hashedPassword)
         return res.status(401).send('wrong password');
-})
+
+    res.send(await generateToken(user[0].userId, stayLoggedIn));
+    debug('user logged in', email);
+});
+
+// List a user's functions
+router.get('/functions/', requireAuthMiddleware, async (req, res) => {
+    const userId = req.session;
+
+    const fns = await db.queryProm(
+        'SELECT functionId, name, about, creationTs, reusePolicy FROM Functions WHERE userId = ?;',
+        [userId],
+        true,
+    );
+    if (fns instanceof Error)
+        return res.status(500).send(fns);
+
+    res.json(fns);
+});
+
+// Describe a function
+router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
+    const userId = req.session;
+    const { fnId } = req.params;
+
+    const fnq = await db.queryProm(
+        'SELECT functionId, name, about, creationTs, reusePolicy FROM Functions WHERE functionId = ? AND userId = ?;',
+        [ fnId, userId ],
+        true,
+    );
+    if (fnq instanceof Error)
+        return res.status(500).send(fnq);
+    if (fnq.length === 0)
+        return res.status(404).send('not found');
+    const fn = fnq[0];
+
+    const logCount = await db.queryProm('SELECT COUNT(*) AS numLogs FROM FunctionLogs WHERE functionId = ?;', [fnId], true);
+    if (logCount instanceof Error)
+        console.error(logCount);
+    else
+        fn.logCount = logCount[0].numLogs;
+
+    const assets = await db.queryProm(
+        'SELECT assetId, LENGTH(contents) AS size, fileName, creationTs, modifiedTs '
+        + 'FROM FunctionAssets WHERE functionId = ?;',
+        [fnId],
+        true,
+    );
+    if (assets instanceof Error)
+        console.error(logCount);
+    fn.assets = assets instanceof Error ? [] : assets;
+
+    res.json(fn);
+});
 
 // TODO
 // User logout

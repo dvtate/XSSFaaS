@@ -4,14 +4,17 @@ const path = require('path');
 const devConfig = {
     mode: 'development',
     entry: {
-        worker: './src/worker/index.ts'
+        // Main script for the worker page
+        'worker/index': './src/worker/index.ts',
+        // Script run by worker threads
+        'worker/index.worker': './src/worker/index.worker.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'main.bundle.js'
+        filename: '[name].bundle.js',
     },
     module: {
         rules: [
@@ -32,14 +35,17 @@ const devConfig = {
 const prodConfig = {
     mode: 'production',
     entry: {
-        worker: './src/worker/index.ts'
+        // Main script for the worker page
+        'worker/index': './src/worker/index.ts',
+        // Script run by worker threads
+        'worker/index.worker': './src/worker/index.worker.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'main.bundle.js'
+        filename: '[name].bundle.js'
     },
     module: {
         rules: [

@@ -61,7 +61,7 @@ export default class Thread {
     /**
      * Web Worker thread
      */
-    w = new Worker('index.worker.ts');
+    w = new Worker('index.worker.bundle.js');
 
     /**
      * Uncompleted tasks sent to the worker
