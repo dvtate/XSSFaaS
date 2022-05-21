@@ -72,4 +72,6 @@ submitBtn.onclick = async function submit() {
     } catch (e) {
         console.error(e);
     }
+
+    window.location.href = 'login.html';
 }

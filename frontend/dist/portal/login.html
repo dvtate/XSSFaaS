@@ -5,7 +5,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>XSSaaS</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <style>
+            #invalid-reason {
+                padding-left: 5px;
+                color: red;
+            }
+        </style>
     </head>
     <body>
         <div class="ms-menu">
@@ -39,9 +45,11 @@
                     <input type="password" id="Password" placeholder="Password" />
                 </div>
                 <div class="ms-form-group">
-                    <label for="StayLoggedIn">Stay Logged In</label>
-                    <input type="checkbox" id="StayLoggedIn" />
+                    <label for="chk-stay-logged-in">Stay Logged In</label>
+                    <input type="checkbox" id="chk-stay-logged-in" />
                 </div>
+                <div><span id="invalid-reason"></span></div>
+                <br/>
                 <div><button type="button" id="btn-submit" class="ms-primary">Sign In</button></div>
             </form>
             <br/>

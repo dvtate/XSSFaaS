@@ -69,18 +69,21 @@ router.post('/user/signup', async (req, res) => {
 router.post('/user/login', async (req, res) => {
     const { email, password, stayLoggedIn } = req.body;
 
-    const user = await db.queryProm('SELECT userId, hashedPassword FROM Users WHERE email = ?;', [email], true);
+    const user = await db.queryProm('SELECT userId, passwordHash FROM Users WHERE email = ?;', [email], true);
     if (user instanceof Error) {
         console.error(user);
         return res.status(500).send(user);
     }
     if (!user[0])
         return res.status(401).send('wrong email');
-    if (getPasswordHash(user[0].userId, password) !== user[0].hashedPassword)
+    if (getPasswordHash(user[0].userId, password) !== user[0].passwordHash) {
+        console.log('calc:', getPasswordHash(user[0].userId, password));
+        console.log('db:', user[0].passwordHash);
         return res.status(401).send('wrong password');
+    }
 
     res.send(await generateToken(user[0].userId, stayLoggedIn));
-    debug('user logged in', email);
+    debug('User logged in', email);
 });
 
 // List a user's functions
