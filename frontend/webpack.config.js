@@ -10,6 +10,8 @@ const devConfig = {
         'worker/index.worker': './src/worker/index.worker.ts',
         // Script for the signup page
         '/portal/signup': './src/portal/signup_page.ts',
+        // Script for the login page
+        '/portal/login': './src/portal/login_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
@@ -41,6 +43,10 @@ const prodConfig = {
         'worker/index': './src/worker/index.ts',
         // Script run by worker threads
         'worker/index.worker': './src/worker/index.worker.ts',
+        // Script for the signup page
+        '/portal/signup': './src/portal/signup_page.ts',
+        // Script for the login page
+        '/portal/login': './src/portal/login_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
