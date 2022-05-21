@@ -13,12 +13,18 @@ const debug = Debugger('xss:api:server');
 // Set up express server
 import express from 'express';
 import { json } from 'body-parser';
+import cors from 'cors';
 const app = express();
 app.use(json());
 app.set('trust proxy', 1);
+app.use(cors({
+    origin: '*',
+    credentials: true,
+    optionSuccessStatus: 200,
+}));
 
 // Probably better to have this hosted by 3rd party static host w/ a cdn
-app.use(express.static('./static'));
+app.use('/static', express.static('../../frontend/dist/'));
 
 // 3rd party api endpoints
 // import apiRouter from './api';

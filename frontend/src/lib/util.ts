@@ -17,11 +17,12 @@ export async function post(url: string, body: any): Promise<HttpResponse> {
     try {
         const resp = await fetch(url, {
             method: 'POST',
-            mode: 'cors',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getCookie('authToken')}`,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': 'true',
             },
             body: JSON.stringify(body),
         });
@@ -49,6 +50,8 @@ export async function get(url: string): Promise<HttpResponse> {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getCookie('authToken')}`,
+                'Access-Control-Allow-Origin': API_SERVER_URL,
+                'Access-Control-Allow-Credentials': 'true',
             },
         });
 

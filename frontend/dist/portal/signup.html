@@ -5,7 +5,13 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>XSSaaS</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <style>
+            #invalid-reason {
+                padding-left: 5px;
+                color: red;
+            }
+        </style>
     </head>
     <body>
         <div class="ms-menu">
@@ -32,28 +38,32 @@
             <form>
                 <div class="ms-form-group">
                     <label for="Name">Name</label>
-                    <input type="text" id="Name" placeholder="Name/Username" />
+                    <input type="text" autocomplete="name" id="Name" placeholder="Name/Username" />
                 </div>
 
                 <div class="ms-form-group">
                     <label for="Email">Email</label>
-                    <input type="email" id="Email" placeholder="Email" />
+                    <input type="email" autocomplete="email" id="Email" placeholder="Email" />
                 </div>
 
                 <div class="ms-form-group">
                     <label for="Password">Password</label>
-                    <input type="password" id="Password" placeholder="Password" />
+                    <input type="password" autocomplete="new-password" id="Password" placeholder="Password" />
                 </div>
                 <div class="ms-form-group">
                     <label for="Password2">Retype Password</label>
-                    <input type="password" id="Password2" placeholder="Password" />
+                    <input type="password" autocomplete="new-password" id="Password2" placeholder="Password" />
                 </div>
 
-                <div><button id="btn-submit" class="ms-primary">Sign Up</button></div>
+
+                <div><span id="invalid-reason"></span><br/></div>
+                <br/>
+                <div><button type="button" id="btn-submit" class="ms-primary">Sign Up</button></div>
             </form>
             <br/>
             <a href="login.html">Already have an account?</a>
             <br/>
         </div>
+        <script src="signup.bundle.js"></script>
     </body>
 </html>

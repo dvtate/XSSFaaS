@@ -1,7 +1,6 @@
 // This script gets run by webworker threads
 
-import { API_SERVER_URL } from '../globals';
-
+import { API_SERVER_URL } from '../lib/globals';
 import { Task, IPCMessage } from './thread';
 
 let taskQueue: Task[] = [];
@@ -25,7 +24,6 @@ onmessage = function (m: MessageEvent<IPCMessage>) {
     }
 }
 
-
 const jobFnCache: { [id: string] : any } = {};
 
 async function getFn(id: string) {
@@ -36,14 +34,13 @@ async function getFn(id: string) {
         ));
 }
 
-
+// TODO this should write logs to server
 class HostUtils {
     constructor(public task: Task) {}
     log(m: string) {
         console.log(m);
     }
 }
-
 
 async function doTask(t: Task) {
     const f = await getFn(t.fnId);
@@ -54,7 +51,6 @@ async function main() {
     // Sleep function
     const delay = async (ms: number): Promise<void> =>
         new Promise(resolve => setTimeout(resolve, ms));
-
 
     // TODO refactor this so that it doesn't tick when no tasks until new message received
     for (;;) {

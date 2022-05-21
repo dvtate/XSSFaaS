@@ -21,7 +21,7 @@ router.post('/user/signup', async (req, res) => {
         return res.status(400).send('missing email');
     if (!password)
         return res.status(400).send('missing password');
-    if (validator.isEmail(email))
+    if (!validator.isEmail(email))
         return res.status(400).send('invalid email');
 
     // Verify email not duplicate
@@ -42,8 +42,8 @@ router.post('/user/signup', async (req, res) => {
 
         // Try to create user
         const result = await db.queryProm(
-            'INSERT INTO Users (name, email, passwordHash, createdTs) VALUES (?, ?, ?, ?);',
-            [name, email, pwHash, Date.now()],
+            'INSERT INTO Users (userId, name, email, passwordHash, creationTs) VALUES (?, ?, ?, ?, ?);',
+            [userId, name, email, pwHash, Date.now()],
             false,
         );
 
@@ -51,6 +51,7 @@ router.post('/user/signup', async (req, res) => {
         if (result instanceof Error) {
             if (result.message.match(/Duplicate entry '.+' for key 'PRIMARY'/))
                 continue;
+            console.error(result);
             return res.status(500).send(result);
         }
 
@@ -60,8 +61,8 @@ router.post('/user/signup', async (req, res) => {
     debug('New user: ', email, name);
 
     // Log the user in
-    const token = await generateToken(userId, req.body.stayLoggedIn);
-    res.send(token);
+    // const token = await generateToken(userId, req.body.stayLoggedIn);
+    // res.send(token);
 });
 
 // User login

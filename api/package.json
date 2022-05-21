@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "DEBUG=xss:api:* node dist/lib/index.js"
+    "start": "DEBUG=xss:api:* node dist/index.js",
+    "dev": "DEBUG=xss:api:* nodemon src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -18,10 +19,12 @@
   },
   "homepage": "https://github.com/dvtate/xssaas#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "debug": "^4.3.4",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@types/debug": "^4.1.7",

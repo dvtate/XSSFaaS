@@ -7,7 +7,7 @@ config();
 
 // Debugger
 import Debugger from 'debug';
-const debug = Debugger("core:db");
+const debug = Debugger("xss:api:db");
 
 // Get config
 const rw_cred = JSON.parse(process.env.RW_DB);
@@ -52,9 +52,9 @@ export function begin() {
 
 /**
  * Send a database query
- * @param {string} query - database query format template
- * @param {string[]} params - things to fill into template
- * @param {boolean} ro - can we use read-only database?
+ * @param query - database query format template
+ * @param params - things to fill into template
+ * @param ro - can we use read-only database?
  */
 export async function queryProm(query: string, params: string[] = [], ro: boolean = false): Promise<Error | any[]> {
     // Select database

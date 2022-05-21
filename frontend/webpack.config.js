@@ -8,6 +8,8 @@ const devConfig = {
         'worker/index': './src/worker/index.ts',
         // Script run by worker threads
         'worker/index.worker': './src/worker/index.worker.ts',
+        // Script for the signup page
+        '/portal/signup': './src/portal/signup_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
