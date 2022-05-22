@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>XSSaaS</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <style>
+            #invalid-reason {
+                padding-left: 5px;
+                color: red;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ms-menu">
+            <div class="ms-menu-logo">XSSaaS</div>
+            <nav class="ms-menu-link">
+                <input type="checkbox" id="ms-menu-toggle" />
+                <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
+                    <li><a id="nav-link-portal" href="">Portal</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="ms-tab ms-fullwidth">
+            <ul>
+                <li><a class="ms-active">Functions</a></li>
+                <li><a>Workers</a></li>
+            </ul>
+        </div>
+    </body>
+</html>
