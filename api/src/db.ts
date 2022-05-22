@@ -34,6 +34,7 @@ export function begin() {
             user: rw_cred.user,
             password: rw_cred.password,
             database: rw_cred.database,
+            multipleStatements: true,
         });
 
         // read replica

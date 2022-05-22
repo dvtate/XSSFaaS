@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>XSSaaS</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <style>
+            #failed-text {
+                padding-left: 5px;
+                color: red;
+            }
+        </style>
+        <script src="../js/page.bundle.js" async defer></script>
+    </head>
+    <body>
+        <div class="ms-menu">
+            <div class="ms-menu-logo">XSSaaS</div>
+            <nav class="ms-menu-link">
+                <input type="checkbox" id="ms-menu-toggle" />
+                <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
+                <ul>
+                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
+                    <li><a id="nav-link-portal" href="">Portal</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="container">
+            <h1>New Function</h1><hr/>
+            <form>
+                <div class="ms-form-group">
+                    <label for="fn-name">Function Name</label>
+                    <input type="text" id="fn-name" required />
+                </div>
+                <div class="ms-form-group">
+                    <label for="fn-about">Function Description</label>
+                    <textarea id="fn-about" rows="3" maxlength="255"></textarea>
+                </div>
+                <div class="ms-form-group">
+                    <label for="fn-pol-fws">Use only workers associated with this account</label>
+                    <input type="checkbox" id="fn-pol-fws" />
+                </div>
+                <div class="ms-form-group">
+                    <label for="fn-pol-reuse">Avoid reusing workers (ie - to avoid ratelimits)</label>
+                    <input type="checkbox" id="fn-pol-reuse" />
+                </div>
+                <div class="ms-form-group-inline">
+                    <label for="fn-pol-spec">Preferred Worker Specs</label>
+                    <select id="fn-pol-spec">
+                        <option value="BALANCED">Balanced</option>
+                        <option value="CPU">Compute</option>
+                        <option value="NET">Network</option>
+                    </select>
+                </div>
+                <div class="ms-form-group">
+                    <!-- TODO -->
+                    <label for="fn-files">Relevant Files</label>
+                    <input type="file" id="fn-files" multiple>
+                    * Must include a file named <kbd>index.js</kbd>
+                </div>
+                <button type="button" class="ms-btn ms-primary ms-medium" id="btn-create">Create Function</button>
+                <span id="failed-text"></span>
+            </form>
+        </div>
+        <script src="create_function.bundle.js"></script>
+    </body>
+</html>

@@ -6,12 +6,7 @@
         <title>XSSaaS</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
-        <style>
-            #invalid-reason {
-                padding-left: 5px;
-                color: red;
-            }
-        </style>
+        <script src="../js/page.bundle.js" async defer></script>
     </head>
     <body>
         <div class="ms-menu">
@@ -20,17 +15,35 @@
                 <input type="checkbox" id="ms-menu-toggle" />
                 <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
                 <ul>
-                    <li><a href="">Home</a></li>
+                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
+                    <li><a href="/">Home</a></li>
                     <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
                     <li><a id="nav-link-portal" href="">Portal</a></li>
                 </ul>
             </nav>
         </div>
-        <div class="ms-tab ms-fullwidth">
-            <ul>
-                <li><a class="ms-active">Functions</a></li>
-                <li><a>Workers</a></li>
-            </ul>
+        <div class="container">
+            <h1>Portal</h1><hr/>
+            <div id="page">
+                <h2>Functions</h2>
+                These are the different types of tasks you can automate.
+                <a href="create_function.html" class="ms-btn ms-primary">Add Function</a>
+
+                <div id="functions-list">
+                    <p>loading...</p>
+                </div>
+
+                <hr/>
+
+                <h2>Workers</h2>
+                These are the worker sessions associated with your account.
+                <a href="../worker/" class="ms-btn ms-primary">Launch Worker Session</a>
+
+                <div id="workers-list">
+                    <p>loading...</p>
+                </div>
+            </div>
         </div>
+        <script src="index.bundle.js"></script>
     </body>
 </html>

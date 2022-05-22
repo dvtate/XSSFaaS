@@ -29,9 +29,11 @@ CREATE TABLE Functions (
     -- Distribution Policy
     --  some use cases want more spread out requests
     --  other use cases it's better to have same worker perform all requests
-    reusePolicy ENUM('SPREAD', 'LATENCY') default 'LATENCY',
+    preventReuse BOOLEAN DEFAULT 0,
 
-    optSpec ENUM('CPU', 'NET', 'BALANCED') default 'BALANCED'
+    optSpec ENUM('CPU', 'NET', 'BALANCED') default 'BALANCED',
+
+    allowForeignWorkers BOOLEAN DEFAULT 1
 );
 
 -- Uploaded files relevant to function (ie - source)
@@ -52,6 +54,7 @@ CREATE TABLE Workers (
     connectTs BIGINT UNSIGNED DEFAULT NULL,
     lastSeenTs BIGINT UNSIGNED DEFAULT NULL,                -- null if still online, first time
     threads SMALLINT UNSIGNED DEFAULT 1,                    -- hardware concurrency
+    acceptForeignWork BOOLEAN DEFAULT 1,
 
     -- this data is kinda awkard to collect but useful for policies
     userAgent TEXT DEFAULT NULL,

@@ -9,9 +9,15 @@ const devConfig = {
         // Script run by worker threads
         'worker/index.worker': './src/worker/index.worker.ts',
         // Script for the signup page
-        '/portal/signup': './src/portal/signup_page.ts',
+        'portal/signup': './src/portal/signup_page.ts',
         // Script for the login page
-        '/portal/login': './src/portal/login_page.ts',
+        'portal/login': './src/portal/login_page.ts',
+        // Default page behaviors
+        'js/page': './src/lib/page.ts',
+        // Portal main page script
+        'portal/index': './src/portal/index.ts',
+        // Script for create function page
+        'portal/create_function': './src/portal/create_function_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
@@ -44,9 +50,15 @@ const prodConfig = {
         // Script run by worker threads
         'worker/index.worker': './src/worker/index.worker.ts',
         // Script for the signup page
-        '/portal/signup': './src/portal/signup_page.ts',
+        'portal/signup': './src/portal/signup_page.ts',
         // Script for the login page
-        '/portal/login': './src/portal/login_page.ts',
+        'portal/login': './src/portal/login_page.ts',
+        // Default page behaviors
+        'js/page': './src/lib/page.ts',
+        // Portal main page script
+        'portal/index': './src/portal/index.ts',
+        // Script for create function page
+        'portal/create_function': './src/portal/create_function_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>XSSaaS</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <script src="js/page.bundle.js" async defer></script>
     </head>
     <body>
         <div class="ms-menu">
@@ -14,9 +15,10 @@
                 <input type="checkbox" id="ms-menu-toggle" />
                 <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
                 <ul>
+                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
                     <li><a href="">Home</a></li>
                     <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
-                    <li><a id="nav-link-portal" href="">Portal</a></li>
+                    <li><a id="nav-link-portal" href="portal/">Portal</a></li>
                 </ul>
             </nav>
         </div>
@@ -24,7 +26,7 @@
         <div class="container">
             <h1>XSSaaS</h1>
             <p>Yet another serverless <a href="https://en.wikipedia.org/wiki/Function_as_a_service" target="_blank">FaaS</a>
-                serverless platform except this one runs your functions in random people's browsers.
+                platform except this one runs your functions in random people's browsers.
                 Or alternatively you could self-host and use your own computer lab.</p>
 
             <!-- Should probably address Security and Stability as these are kinda spooky -->

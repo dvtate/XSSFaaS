@@ -36,3 +36,5 @@ async function main() {
     writeLog(new Log(Log.Type.S_INFO, `Spawned ${nproc} worker threads`));
     await connectToRouter();
 }
+
+main();

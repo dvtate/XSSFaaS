@@ -14,10 +14,10 @@ import { requireAuthMiddleware } from '../auth';
 // WorkerId used to communicate with router and authentication
 router.post('/enlist', requireAuthMiddleware, async (req, res) => {
     const { ncores } = req.body;
-    const userId = String(req.session);
+    const { userId } = req.session;
 
-    const selectQuery = 'SELECT MAX(workerId) FROM WORKERS;';
-    const workerId = process.env.NO_TELEMETRY
+    const selectQuery = 'SELECT MAX(workerId) as workerId FROM Workers;';
+    const query = process.env.NO_TELEMETRY
         ? await db.queryProm(
             'INSERT INTO Workers (userId, threads) VALUES (?, ?);' + selectQuery,
             [userId, ncores],
@@ -29,7 +29,7 @@ router.post('/enlist', requireAuthMiddleware, async (req, res) => {
             false,
         );
 
-    console.log(workerId);
+    res.json(query[1][0].workerId);
 
 });
 

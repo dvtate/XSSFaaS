@@ -1,12 +1,7 @@
 
 // TODO add a type of log entry that's not shown to user, only to creator
 
-let logLevel = 0;
-
 const logQueue = [];
-
-const logView = document.getElementById('log-view');
-const selectionView = document.getElementById('selection-view');
 
 /**
  * Relevancy of the log message
@@ -43,21 +38,22 @@ export class Log {
     constructor(
         public type: LogType,
         public message: string,
-        public stack: string = new Error().stack,
+        public stack: string = new Error().stack.split('\n').slice(1).join('<br/>').trim(),
         public verbosity: number = 0,
     ) {
     }
 }
 
 /**
- *
- * @param log
+ * Display log entry to the user
  */
 export function writeLog(log: Log) {
+    const logView = document.getElementById('log-view');
+
     // Update page and log queue
     function writeEntry(log: Log) {
         const div = document.createElement('div');
-        div.classList.add('row', 'log-status-' + log.type);
+        div.classList.add('log-entry', 'log-status-' + log.type);
         div.onclick = () => showLog(log);
         div.innerText = `${log.date.toISOString()}: ${log.message}`;
         logView.appendChild(div);
@@ -80,7 +76,7 @@ export function writeLog(log: Log) {
 function showLog(log: Log) {
     const logTypeStrs = ['Job Success', 'Worker info', 'System Info', 'Job failure', 'System fatal'];
 
-    selectionView.innerHTML = `
+    document.getElementById('selection-view').innerHTML = `
     <h2>Log Entry</h2>
     <dl>
         <dt>Type</dt>
@@ -89,7 +85,7 @@ function showLog(log: Log) {
         <dd>${log.message}</dd>
         <dt>Date</dt>
         <dd>${log.date}</dd>
-        ${log.stack && `<dt>Stack</dt><dd>${log.stack}</dd>`}
-        ${log.origin !== undefined && `<dt>Thread</dt><dd>${log.origin}</dd>`}
+        ${log.stack ? `<dt>Stack</dt><dd><code>${log.stack}</code></dd>` : ''}
+        ${log.origin === undefined ? '' : `<dt>Thread</dt><dd>${log.origin}</dd>`}
     </dl>`;
 }

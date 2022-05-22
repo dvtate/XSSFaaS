@@ -90,10 +90,11 @@ router.post('/user/login', async (req, res) => {
 
 // List a user's functions
 router.get('/functions/', requireAuthMiddleware, async (req, res) => {
-    const userId = req.session;
+    const { userId } = req.session;
 
     const fns = await db.queryProm(
-        'SELECT functionId, name, about, creationTs, reusePolicy FROM Functions WHERE userId = ?;',
+        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
+        + 'FROM Functions WHERE userId = ?;',
         [userId],
         true,
     );
@@ -105,11 +106,12 @@ router.get('/functions/', requireAuthMiddleware, async (req, res) => {
 
 // Describe a function
 router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
-    const userId = req.session;
+    const { userId } = req.session;
     const { fnId } = req.params;
 
     const fnq = await db.queryProm(
-        'SELECT functionId, name, about, creationTs, reusePolicy FROM Functions WHERE functionId = ? AND userId = ?;',
+        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
+        + 'FROM Functions WHERE functionId = ? AND userId = ?;',
         [ fnId, userId ],
         true,
     );
@@ -132,22 +134,115 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
         true,
     );
     if (assets instanceof Error)
-        console.error(logCount);
+        console.error(assets);
     fn.assets = assets instanceof Error ? [] : assets;
 
     res.json(fn);
 });
 
+// List workers
+router.get('/workers', requireAuthMiddleware, async (req, res) => {
+    const { userId } = req.session;
+    const workers = await db.queryProm(
+        'SELECT workerId, connectTs, lastSeenTs, threads, userAgent, ip FROM Workers WHERE userId=?',
+        [userId],
+        true,
+    );
+    if (workers instanceof Error) {
+        console.error(workers);
+        return res.status(500).send('db error');
+    }
+    res.json(workers);
+});
+
+// Create function
+router.post('/function', requireAuthMiddleware, async (req, res) => {
+    const { userId } = req.session;
+    const { name, about, preventReuse, optSpec, allowForeignWorkers } = req.body;
+    const ts = Date.now();
+
+    const qr = await db.queryProm(
+        `INSERT INTO Functions (functionid, userId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers)
+        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?);
+        SELECT functionId FROM Functions WHERE creationTs = ?;`,
+        [userId, name, about, ts, preventReuse, optSpec, allowForeignWorkers, ts],
+        false,
+    );
+    if (qr instanceof Error) {
+        console.error(qr);
+        return res.status(500).send('db error');
+    }
+    res.send(qr[1][0].functionId);
+});
+
+// Alter function
+router.post('/function/:functionId/alter', requireAuthMiddleware, async (req, res) => {
+    const { userId } = req.session;
+    const { functionId } = req.params;
+    const fields = ['name', 'about', 'preventReuse', 'optSpec', 'allowForeignWorkers'];
+    const { field, value } = req.body;
+    if (!fields.includes(field))
+        return res.status(400).send('invalid field');
+
+    const q = await db.queryProm(
+        `UPDATE Functions SET ${field} = ? WHERE functionId = ? AND userId = ?;`,
+        [value, functionId, userId],
+        false,
+    );
+
+    if (q instanceof Error) {
+        console.error(q);
+        return res.status(500).send('db error');
+    }
+
+    res.status(200).send('ok');
+});
+
+// Delete asset
+router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
+    const { userId } = req.session;
+    const { assetId } = req.params;
+
+    const q = await db.queryProm(
+        'DELETE FROM FunctionAssets WHERE assetId = ? AND functionId IN ('
+            + 'SELECT functionId FROM Functions WHERE userId = ?);',
+        [assetId, userId],
+        false,
+    );
+
+    if (q instanceof Error) {
+        console.error(q);
+        return res.status(500).send('db error');
+    }
+    res.status(200).send('ok');
+});
+
+// Delete function
+router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) => {
+    const { userId } = req.session;
+    const { functionId } = req.params;
+
+    const q = await db.queryProm(
+        'DELETE FROM Functions WHERE functionId = ? AND userId = ?;',
+        [functionId, userId],
+        false,
+    );
+
+    if (q instanceof Error) {
+        console.error(q);
+        return res.status(500).send('db error');
+    }
+    res.status(200).send('ok');
+});
+
+// Upload function asset
+
+
 // TODO
 // User logout
 // Update user
 // User stats
-// List functions
-// Create function
-// Delete function
-// Update function
 // Upload file for function
-// List workers
 // Enable/Disable worker (to allow safe shutdown)
 
 export default router;
