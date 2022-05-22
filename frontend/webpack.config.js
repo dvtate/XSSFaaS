@@ -17,7 +17,7 @@ const devConfig = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'static'),
         filename: '[name].bundle.js',
     },
     module: {
@@ -52,7 +52,7 @@ const prodConfig = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'static'),
         filename: '[name].bundle.js'
     },
     module: {

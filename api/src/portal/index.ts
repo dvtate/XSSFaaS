@@ -60,6 +60,8 @@ router.post('/user/signup', async (req, res) => {
 
     debug('New user: ', email, name);
 
+    res.send('Welcome');
+
     // Log the user in
     // const token = await generateToken(userId, req.body.stayLoggedIn);
     // res.send(token);

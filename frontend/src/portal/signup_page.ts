@@ -46,7 +46,6 @@ nameInp.onkeyup
     invalidSpan.innerHTML = invalid;
     submitBtn.disabled = !!invalid;
 }
-
 submitBtn.onclick = async function submit() {
     // Check inputs
     const invalid = checkInputs();
@@ -55,22 +54,18 @@ submitBtn.onclick = async function submit() {
     if (invalid)
         return;
 
-    try {
+    // Create account
     const resp = await util.post(API_SERVER_URL + '/portal/user/signup', {
         name: nameInp.value,
         email: emailInp.value,
         password: passwordInp1.value,
     });
-
     if (resp.status === 200)
         window.location.href = 'login.html';
     else {
         invalidSpan.innerHTML = resp.text;
         if (resp.text === 'email already in use')
             emailInp.style.border = '1px solid red';
-    }
-    } catch (e) {
-        console.error(e);
     }
 
     window.location.href = 'login.html';

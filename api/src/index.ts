@@ -16,6 +16,8 @@ import { json } from 'body-parser';
 import cors from 'cors';
 const app = express();
 app.use(json());
+
+// TODO reassess if these are really needed
 app.set('trust proxy', 1);
 app.use(cors({
     origin: '*',
@@ -24,7 +26,7 @@ app.use(cors({
 }));
 
 // Probably better to have this hosted by 3rd party static host w/ a cdn
-app.use('/static', express.static('../../frontend/dist/'));
+app.use('/static', express.static('../../frontend/static/'));
 
 // 3rd party api endpoints
 // import apiRouter from './api';
