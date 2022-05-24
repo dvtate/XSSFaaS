@@ -8,8 +8,8 @@ document.getElementsByTagName('form')[0].onsubmit
     // Extract values from form
     const name = (document.getElementById('fn-name') as HTMLInputElement).value;
     const about = (document.getElementById('fn-about') as HTMLTextAreaElement).value;
-    const allowForeignWorkers = !(document.getElementById('fn-pol-fws') as HTMLInputElement).value;
-    const preventReuse = !!(document.getElementById('fn-pol-reuse') as HTMLInputElement).value;
+    const allowForeignWorkers = !(document.getElementById('fn-pol-fws') as HTMLInputElement).checked;
+    const preventReuse = !!(document.getElementById('fn-pol-reuse') as HTMLInputElement).checked;
     const optSpec = (document.getElementById('fn-pol-spec') as HTMLSelectElement).value;
 
     // Send data to server
@@ -39,7 +39,7 @@ document.getElementsByTagName('form')[0].onsubmit
     } catch (e) {
         console.error(e);
     }
-    console.log('uploaded', projectFiles.length, 'projectFiles');
+    console.log('uploaded', projectFiles.length, 'project files');
 
     // Redirect user to manage page
     window.location.href = 'manage_function.html?id=' + resp.text;
@@ -47,17 +47,17 @@ document.getElementsByTagName('form')[0].onsubmit
 
 // File drop area
 const filesArea = document.getElementById('fn-files');
-filesArea.ondragover = function(ev) {
+filesArea.ondragover = function (ev) {
     ev.preventDefault();
     // ev.stopPropagation();
     filesArea.style.border = '1px solid blue';
-    filesArea.style.backgroundColor = 'darkgrey';
+    filesArea.style.backgroundColor = 'grey';
 };
 filesArea.ondragleave = function (ev) {
     ev.preventDefault();
     // ev.stopPropagation();
     filesArea.style.border = '1px solid skyblue';
-    filesArea.style.backgroundColor = 'grey';
+    filesArea.style.backgroundColor = 'darkgrey';
 };
 filesArea.ondrop = function (ev) {
     ev.preventDefault();

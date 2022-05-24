@@ -130,7 +130,7 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
         fn.logCount = logCount[0].numLogs;
 
     const assets = await db.queryProm(
-        'SELECT assetId, LENGTH(contents) AS size, fileName, creationTs, modifiedTs '
+        'SELECT assetId, sizeBytes, fileName, creationTs, modifiedTs '
         + 'FROM FunctionAssets WHERE functionId = ?;',
         [fnId],
         true,
@@ -248,7 +248,7 @@ const fileUploadMiddleware = fileUpload({
     createParentPath: true,
 });
 
-router.post('/function/:functionId/asset/upload/', requireAuthMiddleware, fileUploadMiddleware, async (req, res) => {
+router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUploadMiddleware, async (req, res) => {
     const { functionId } = req.params;
     if (!req.files || Object.keys(req.files).length === 0)
         return res.status(400).send('missing files');
@@ -294,6 +294,42 @@ router.get('/assets/:functionId/:fname', requireAuthMiddleware, async (req, res)
         console.error(err);
         // TODO fallback to use database
     });
+});
+
+// Get logs for a function
+// ?limit: get param to cap result
+// TODO proper pagination
+router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res) => {
+    // Get params
+    const { functionId } = req.params;
+    const { limit } = req.query;
+    const { userId } = req.session;
+
+    // Verify user authorized to fxn
+    const userOwnsFn = await db.queryProm(
+        `SELECT COUNT(*) FROM Functions WHERE functionId = ? AND userId = ?`,
+        [functionId, userId],
+        true);
+    if (userOwnsFn instanceof Error || !userOwnsFn.length)
+        return res.status(404).send("you don't have a function with that id");
+
+    // Parse limit param
+    let n;
+    try {
+        n = String(limit ? Number(limit) : 1000);
+    } catch (e) {
+        return res.status(400).send('invalid limit parameter');
+    }
+
+    // Get logs from db
+    const logs = await db.queryProm(
+        `SELECT logType, message, ts FROM FunctionLogs WHERE functionId = ? LIMIT ${n}`,
+        [functionId],
+        true,
+    );
+    if (logs instanceof Error)
+        return res.status(500).send('db error');
+    res.json(logs);
 });
 
 // TODO

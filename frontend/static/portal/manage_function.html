@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>XSSaaS</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
+        <style>
+            #failed-text {
+                padding-left: 5px;
+                color: red;
+            }
+            #fn-files {
+                background-color: darkgrey;
+                border: 1px solid skyblue;
+                padding: 20px;
+                transition: background-color 0.5s;
+                border-radius: 6px;
+            }
+            .small-fname {
+                font-size: 60%;
+            }
+            .invalid {
+                color: red;
+            }
+
+            #log-view {
+                background-color: black;
+                color: white;
+                overflow-y: scroll;
+                max-height: 600px;
+            }
+
+            div.log-user {
+                color: white;
+            }
+            div.log-fatal {
+                color: red;
+            }
+            div.log-entry:hover {
+                background-color: darkslategrey;
+            }
+        </style>
+        <script src="../js/page.bundle.js" async defer></script>
+    </head>
+    <body>
+        <div class="ms-menu">
+            <div class="ms-menu-logo">XSSaaS</div>
+            <nav class="ms-menu-link">
+                <input type="checkbox" id="ms-menu-toggle" />
+                <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
+                <ul>
+                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
+                    <li><a id="nav-link-portal" href="">Portal</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="container">
+            <h1>Manage <span id="function-name">Function</span></h1>
+            <span>Function ID <span id="function-id">loading...</span></span>
+
+            <fieldset>
+                <legend>Logs</legend>
+                <button type="button" id="btn-logs">Show Logs</button>
+                <!-- TODO search bar with regex or whatever -->
+                <br/>
+                <div id="log-view">
+                </div>
+                <!-- TODO pagination -->
+            </fieldset>
+            <fieldset>
+                <legend>Invoke Function</legend>
+                <p>To call this function send a HTTP POST request to
+                <kbd id="url-fxn-call">... generating ...</kbd>
+                with a JSON body containing any additional data.</p>
+
+                <p>Note that in the near future an authentication token will also be required.</p>
+            </fieldset>
+
+            <fieldset>
+                <legend>Properties</legend>
+
+                <form action="javascript:;">
+                    <div class="ms-form-group">
+                        <label for="fn-name">Name</label>
+                        <input type="text" id="fn-name" />
+                        <button type="button" disabled id="btn-fn-name">Update</button>
+                    </div>
+                    <div class="ms-form-group">
+                        <label for="fn-about">Function Description</label>
+                        <textarea id="fn-about" rows="3" maxlength="255"></textarea>
+                        <button type="button" disabled id="btn-fn-about">Update</button>
+                    </div>
+                    <div class="ms-form-group">
+                        <label for="fn-pol-fws">Use only workers associated with this account</label>
+                        <input type="checkbox" id="fn-pol-fws" />
+                        <button type="button" disabled id="btn-fn-pol-fws">Update</button>
+                    </div>
+                    <div class="ms-form-group">
+                        <label for="fn-pol-reuse">Avoid reusing workers (not recommended)</label>
+                        <input type="checkbox" id="fn-pol-reuse" />
+                        <button type="button" disabled id="btn-fn-pol-reuse">Update</button>
+                    </div>
+                    <div class="ms-form-group">
+                        <label for="fn-pol-spec">Preferred Worker Specs</label>
+                        <select id="fn-pol-spec">
+                            <option value="BALANCED">Balanced</option>
+                            <option value="CPU">Compute</option>
+                            <option value="NET">Network</option>
+                        </select>
+                        <button type="button" disabled id="btn-fn-pol-spec">Update</button>
+                    </div>
+                </form>
+            </fieldset>
+
+            <fieldset>
+                <legend>Project Files</legend>
+                <div id="proj-files-list">
+                </div>
+                <hr/>
+                <form action="javascript:;">
+                    <div class="ms-form-group">
+                        <label for="fn-files">Upload Files</label>
+                        <div id="fn-files">
+                            Drop project files here
+                        </div>
+                        <p>Please Upload all relevant project files, notably an <kbd>index.js</kbd> file with a function default export.</p><br/>
+                        <button type="button" disabled id="btn-fn-files">Upload</button>
+                    </div>
+                </form>
+            </fieldset>
+
+            <fieldset>
+                <legend>Delete</legend>
+                <button type="button" class="ms-primary" id="fn-delete">Delete Function and all Corresponding Data</button>
+            </fieldset>
+        </div>
+        <br/>
+        <script src="manage_function.bundle.js"></script>
+    </body>
+</html>

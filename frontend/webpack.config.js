@@ -18,6 +18,8 @@ const devConfig = {
         'portal/index': './src/portal/index.ts',
         // Script for create function page
         'portal/create_function': './src/portal/create_function_page.ts',
+        // Script for the manage function page
+        'portal/manage_function': './src/portal/manage_function_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
@@ -59,6 +61,8 @@ const prodConfig = {
         'portal/index': './src/portal/index.ts',
         // Script for create function page
         'portal/create_function': './src/portal/create_function_page.ts',
+        // Script for the manage function page
+        'portal/manage_function': './src/portal/manage_function_page.ts',
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],

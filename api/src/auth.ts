@@ -53,7 +53,7 @@ export async function authUser(token: string) {
         debug("Token for user %d expired: %s", tok[0].userId, token);
         throw Error("token expired");
     }
-    return tok[0].userId;
+    return Number(tok[0].userId);
 }
 
 /**
@@ -65,13 +65,11 @@ export async function authUserSafe(token: string) {
     if (!token)
         return { error: "Missing Authorization header" };
 
-    let userId;
     try {
-        userId = await authUser(token);
+        return { userId: await authUser(token) };
     } catch (error) {
         return { error: error.toString() };
     }
-    return { userId };
 }
 
 /**
