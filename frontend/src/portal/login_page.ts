@@ -8,38 +8,8 @@ const submitBtn = document.getElementById('btn-submit') as HTMLButtonElement;
 const invalidSpan = document.getElementById('invalid-reason') as HTMLSpanElement;
 const stayLoggedInInp = document.getElementById('chk-stay-logged-in') as HTMLInputElement;
 
-/**
- * @returns Object representing get params
- */
-function getQuerystring() {
-    let output = {};
-    if (window.location.search){
-        const queryParams = window.location.search.substring(1);
-        const listQueries = queryParams.split("&");
-        for (let query in listQueries) {
-            if (listQueries.hasOwnProperty(query)) {
-                const queryPair = listQueries[query].split('=');
-                output[queryPair[0]] = decodeURIComponent(queryPair[1] || "");
-            }
-        }
-    }
-    return output;
-}
-const getParams: { [p: string]: string } = getQuerystring() as any;
 
-/**
- * Set cookie
- * @param name name for the cookie
- * @param value value to store in the cookie
- * @param expMs expiration date for the cookie in miliseconds in the future
- */
-function setCookie(name: string, value: string, expMs: number) {
-    const d = new Date(Date.now() + expMs);
-    const expires = 'expires=' + d.toUTCString();
-    document.cookie = `${name}=${value};${expires};path=/`;
-}
-
-submitBtn.onclick = async function () {
+(document.getElementsByTagName('form')[0] as HTMLFormElement).onsubmit = async function () {
     // Get data from form
     const email = emailInp.value;
     const password = passwordInp.value;
@@ -58,8 +28,8 @@ submitBtn.onclick = async function () {
     }
 
     // Store token
-    setCookie('authToken', login.text, stayLoggedIn ? 6 * 30 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000);
+    util.setCookie('authToken', login.text, stayLoggedIn ? 6 * 30 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000);
 
     // Redirect
-    document.location.href = getParams.rdr || 'index.html';
+    document.location.href = util.getGetParams().rdr || 'index.html';
 }

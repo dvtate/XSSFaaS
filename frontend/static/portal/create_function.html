@@ -11,6 +11,19 @@
                 padding-left: 5px;
                 color: red;
             }
+            #fn-files {
+                background-color: darkgrey;
+                border: 1px solid skyblue;
+                padding: 20px;
+                transition: background-color 0.5s;
+                border-radius: 6px;
+            }
+            .small-fname {
+                font-size: 60%;
+            }
+            .invalid {
+                color: red;
+            }
         </style>
         <script src="../js/page.bundle.js" async defer></script>
     </head>
@@ -30,7 +43,7 @@
         </div>
         <div class="container">
             <h1>New Function</h1><hr/>
-            <form>
+            <form action="javascript:;">
                 <div class="ms-form-group">
                     <label for="fn-name">Function Name</label>
                     <input type="text" id="fn-name" required />
@@ -44,10 +57,10 @@
                     <input type="checkbox" id="fn-pol-fws" />
                 </div>
                 <div class="ms-form-group">
-                    <label for="fn-pol-reuse">Avoid reusing workers (ie - to avoid ratelimits)</label>
+                    <label for="fn-pol-reuse">Avoid reusing workers (not recommended)</label>
                     <input type="checkbox" id="fn-pol-reuse" />
                 </div>
-                <div class="ms-form-group-inline">
+                <div class="ms-form-group">
                     <label for="fn-pol-spec">Preferred Worker Specs</label>
                     <select id="fn-pol-spec">
                         <option value="BALANCED">Balanced</option>
@@ -56,12 +69,13 @@
                     </select>
                 </div>
                 <div class="ms-form-group">
-                    <!-- TODO -->
                     <label for="fn-files">Relevant Files</label>
-                    <input type="file" id="fn-files" multiple>
-                    * Must include a file named <kbd>index.js</kbd>
+                    <div id="fn-files">
+                        Drop project files here
+                    </div>
+                    <p>Please attach all relevant project files, notably an <kbd>index.js</kbd> file with a function default export.</p><br/>
                 </div>
-                <button type="button" class="ms-btn ms-primary ms-medium" id="btn-create">Create Function</button>
+                <button type="submit" class="ms-btn ms-primary ms-medium" id="btn-create">Create Function</button>
                 <span id="failed-text"></span>
             </form>
         </div>

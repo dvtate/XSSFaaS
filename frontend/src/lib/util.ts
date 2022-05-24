@@ -1,6 +1,4 @@
-// This file handles communications with the API server
 
-import { API_SERVER_URL } from './globals';
 
 interface HttpResponse {
     status: number;
@@ -18,11 +16,8 @@ export async function post(url: string, body: any): Promise<HttpResponse> {
         const resp = await fetch(url, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getCookie('authToken')}`,
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Credentials': 'true',
             },
             body: JSON.stringify(body),
         });
@@ -45,13 +40,8 @@ export async function get(url: string): Promise<HttpResponse> {
     try {
         const resp = await fetch(url, {
             method: 'GET',
-            mode: 'cors',
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getCookie('authToken')}`,
-                'Access-Control-Allow-Origin': API_SERVER_URL,
-                'Access-Control-Allow-Credentials': 'true',
             },
         });
 
@@ -64,6 +54,11 @@ export async function get(url: string): Promise<HttpResponse> {
     }
 }
 
+/**
+ * Get the value of a cookie
+ * @param cname name of cookie to get value of
+ * @returns value stored in cookie or empty string
+ */
 export function getCookie(cname: string) {
     const name = cname + "=";
     const decodedCookie = decodeURIComponent(document.cookie);
@@ -76,4 +71,34 @@ export function getCookie(cname: string) {
             return c.substring(name.length, c.length);
     }
     return "";
+}
+
+/**
+ * @returns Object representing get params
+ */
+export function getGetParams(): { [param: string] : string } | null {
+    let output = {};
+    if (window.location.search){
+        const queryParams = window.location.search.substring(1);
+        const listQueries = queryParams.split("&");
+        for (let query in listQueries) {
+            if (listQueries.hasOwnProperty(query)) {
+                const queryPair = listQueries[query].split('=');
+                output[queryPair[0]] = decodeURIComponent(queryPair[1] || "");
+            }
+        }
+    }
+    return output;
+}
+
+/**
+ * Set cookie
+ * @param name name for the cookie
+ * @param value value to store in the cookie
+ * @param expMs expiration date for the cookie in miliseconds in the future
+ */
+export function setCookie(name: string, value: string, expMs: number) {
+    const d = new Date(Date.now() + expMs);
+    const expires = 'expires=' + d.toUTCString();
+    document.cookie = `${name}=${value};${expires};path=/`;
 }

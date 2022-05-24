@@ -11,6 +11,8 @@ import { generateToken, getPasswordHash, requireAuthMiddleware } from '../auth';
 import { Router } from 'express';
 const router = Router();
 
+import fileUpload, { UploadedFile } from 'express-fileupload';
+
 // User signup
 router.post('/user/signup', async (req, res) => {
     // Extract relevant fields
@@ -236,13 +238,68 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
 });
 
 // Upload function asset
+const fileUploadMiddleware = fileUpload({
+    safeFileNames: true,
+    preserveExtension: true,
+    // useTempDir: true,
+    // tempFileDir: process.env.UPLOAD_DIR,
+    abortOnLimit: true, // send 413 when file is too big
+    limits: { fileSize: 20 * 1024 * 1024 },
+    createParentPath: true,
+});
 
+router.post('/function/:functionId/asset/upload/', requireAuthMiddleware, fileUploadMiddleware, async (req, res) => {
+    const { functionId } = req.params;
+    if (!req.files || Object.keys(req.files).length === 0)
+        return res.status(400).send('missing files');
+
+    const files = Object.keys(req.files)
+        .filter(k => k.startsWith('file_'))
+        .map(k => req.files[k]) as UploadedFile[];
+
+    const mvProm = (f, path: string) =>
+        new Promise<void>((resolve, reject) =>
+            f.mv(path, e => e
+                ? reject(e)
+                : resolve()
+            ));
+
+    // Move files to uploads dir and make db entries
+    const proms = [];
+    files.forEach(f => {
+        const path = `${process.env.UPLOADS_DIR}/${functionId}/${f.name}`;
+        proms.push(mvProm(f, path))
+        const ts = String(Date.now());
+        proms.push(db.queryProm(`INSERT INTO FunctionAssets
+            (functionId, location, fileName, sizeBytes, creationTs, modifiedTs)
+            VALUES (?, ?, ?, ?, ?, ?);`,
+            [functionId, path, f.name, String(f.size), ts, ts],
+            false,
+        ));
+    });
+    Promise.all(proms)
+        .then(() => res.send('ok'))
+        .catch(err => {
+            console.error(err);
+            res.status(500).send('failed to upload');
+        });
+
+    debug('stored %d files', files.length);
+});
+
+// Access FunctionAsset
+router.get('/assets/:functionId/:fname', requireAuthMiddleware, async (req, res) => {
+    const { functionId , fname } = req.params;
+    res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`, err => {
+        console.error(err);
+        // TODO fallback to use database
+    });
+});
 
 // TODO
 // User logout
 // Update user
 // User stats
-// Upload file for function
 // Enable/Disable worker (to allow safe shutdown)
 
 export default router;
