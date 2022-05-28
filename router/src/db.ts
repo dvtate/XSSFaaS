@@ -22,7 +22,6 @@ let pool_rr: mysql.Pool;
  * Connect to database
  */
 export function begin() {
-    /* istanbul ignore next */
     if (sameCredentials || !rr_cred) {
         debug("Connecting to '%s'", rw_cred.host);
     } else {
@@ -73,9 +72,12 @@ export async function queryProm(query: string, params: string[] = [], ro: boolea
                     resolve(result);
                 }
             })
-        } catch (error) /* istanbul ignore next */ {
+        } catch (error) {
             debug(error);
-            resolve(error);
+            if (error instanceof Error)
+                return resolve(error);
+            debug('wtf error not instanceof error');
+            resolve(new Error(error.toString()));
         }
     });
 }

@@ -79,16 +79,20 @@ export default class LL<T> {
     sortedReinsert(compare: (a: T, b: T) => number) {
         // Move to right
         let n: LL<T> = this;
-        while (compare(this.item, n.next.item) < 0)
+        while (n.next && compare(this.item, n.next.item) < 0)
             n = n.next;
         if (n != this) {
-            n.prev.insertAfter(this);
+            // Edge case for new end of list
+            if (!n.next && compare(this.item, n.next.item) < 0)
+                n.insertAfter(this);
+            else
+                n.prev.insertAfter(this);
             return;
         }
 
         // Move to left
         n = this;
-        while (compare(this.item, n.next.item) > 0)
+        while (n.prev && compare(this.item, n.next.item) > 0)
             n = n.prev;
         if (n != this)
             n.insertAfter(this);

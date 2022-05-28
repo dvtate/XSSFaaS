@@ -1,8 +1,5 @@
 import * as WebSocket from 'ws';
 
-import Debugger from 'debug';
-const debug = Debugger('xss:rtr:ws:msg');
-
 /**
  * Message types/prefixes so that tell us how to parse message
  * DS_* = only valid when sent to server (us)
@@ -50,13 +47,12 @@ export default class WsMessage {
     static fromBuffer(data: WebSocket.RawData, isBinary: boolean) {
         // TODO eventually we'll want to use binary messages
         if (isBinary) {
-            debug('wtf binary message?');
-            console.log(data);
+            throw new Error('unexpected binary message');
             return null;
         }
         if (data instanceof Array) {
-            debug('wtf message instanceof Array?');
-            console.log(data);
+            console.error(data);
+            throw new Error('message should not be instance of array');
             return null;
         }
         try {
@@ -73,7 +69,7 @@ export default class WsMessage {
                     return new WsMessage(t);
 
                 // Single arg
-                case WsMessage.Type.DS_TASK_START:
+                // case WsMessage.Type.DS_TASK_START:
                 case WsMessage.Type.DS_TASK_DONE:
                 case WsMessage.Type.DW_CANCEL_TASK:
                     return new WsMessage(t, [rem]);
@@ -91,7 +87,7 @@ export default class WsMessage {
                     return new WsMessage(t, [taskId, funId, additionalData]);
                 };
                 default:
-                    debug('invalid message:', dstr);
+                    throw new Error('invalid message');
             }
 
         } catch (e) {
