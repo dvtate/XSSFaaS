@@ -3,6 +3,14 @@
 import { API_SERVER_URL } from '../lib/globals';
 import { Task, IPCMessage } from './thread';
 
+// Prevent Tasks from spawning additional workers
+// TODO paid plan lol
+const Worker_copy = window.Worker;
+window.Worker = function Worker() {
+    throw new Error('Cannot spawn additional workers without paid plan');
+} as any;
+
+
 let taskQueue: Task[] = [];
 
 onmessage = function (m: MessageEvent<IPCMessage>) {

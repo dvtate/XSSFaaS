@@ -96,6 +96,7 @@ export function getGetParams(): { [param: string] : string } | null {
  * @param name name for the cookie
  * @param value value to store in the cookie
  * @param expMs expiration date for the cookie in miliseconds in the future
+ * @remarks to delete a cookien set it's value to ''
  */
 export function setCookie(name: string, value: string, expMs: number) {
     const d = new Date(Date.now() + expMs);

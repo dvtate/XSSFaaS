@@ -97,7 +97,7 @@ router.get('/functions/', requireAuthMiddleware, async (req, res) => {
     const fns = await db.queryProm(
         'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
         + 'FROM Functions WHERE userId = ?;',
-        [userId],
+        [String(userId)],
         true,
     );
     if (fns instanceof Error)
@@ -114,7 +114,7 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
     const fnq = await db.queryProm(
         'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
         + 'FROM Functions WHERE functionId = ? AND userId = ?;',
-        [ fnId, userId ],
+        [ fnId, String(userId) ],
         true,
     );
     if (fnq instanceof Error)
@@ -147,7 +147,7 @@ router.get('/workers', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const workers = await db.queryProm(
         'SELECT workerId, connectTs, lastSeenTs, threads, userAgent, ip FROM Workers WHERE userId=?',
-        [userId],
+        [String(userId)],
         true,
     );
     if (workers instanceof Error) {
@@ -208,7 +208,7 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
     const q = await db.queryProm(
         'DELETE FROM FunctionAssets WHERE assetId = ? AND functionId IN ('
             + 'SELECT functionId FROM Functions WHERE userId = ?);',
-        [assetId, userId],
+        [assetId, String(userId)],
         false,
     );
 
@@ -226,7 +226,7 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
 
     const q = await db.queryProm(
         'DELETE FROM Functions WHERE functionId = ? AND userId = ?;',
-        [functionId, userId],
+        [functionId, String(userId)],
         false,
     );
 
@@ -308,7 +308,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
     // Verify user authorized to fxn
     const userOwnsFn = await db.queryProm(
         `SELECT COUNT(*) FROM Functions WHERE functionId = ? AND userId = ?`,
-        [functionId, userId],
+        [functionId, String(userId)],
         true);
     if (userOwnsFn instanceof Error || !userOwnsFn.length)
         return res.status(404).send("you don't have a function with that id");

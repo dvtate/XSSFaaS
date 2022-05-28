@@ -1,35 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import * as db from "./db";
-import crypto from "crypto";
 import Debugger from 'debug';
 
 const debug = Debugger('xss:rtr:auth');
-const { PW_SALT } = process.env;
-
-/**
- * Make an oauth token for the user
- * @param userId user to authenticate
- * @param stayLoggedIn should we increase the login duration to 6 months?
- * @returns valid auth token
- */
-export async function generateToken(userId: string, stayLoggedIn: boolean = false) {
-    const duration = stayLoggedIn ? "interval 6 month" : "interval 12 hour";
-
-    for (;;) {
-        // generate token
-        // 48 random bytes produces a 64 char of b64 encoded token
-        const token = crypto.randomBytes(48).toString("base64");
-        // add token to db
-        const error = await db.queryProm(`INSERT INTO AuthTokens (authToken, userId, authTokenExpiration)
-                VALUES (?, ?, NOW() + ${duration})`,
-            [token, userId]);
-
-        if (!(error instanceof Error))
-            return token;
-        if (!error.message.match(/Duplicate entry/))
-            throw error;
-    }
-}
 
 /**
  * Validates user authentication token
@@ -72,24 +45,12 @@ export async function authUserSafe(token: string) {
     }
 }
 
-/**
- * 1 way SHA-512 hash with a salt and the randomly generated userId
- * @param userId user's userId
- * @param password password to hash
- * @returns sha-512 hex string
- */
-export function getPasswordHash(userId: string, password: string) {
-    return crypto
-        .createHash('sha512')
-        .update(`${userId}${PW_SALT}${password}`)
-        .digest('hex')
-}
-
 // Extend express with our middleware
 declare global {
     namespace Express {
         export interface Request {
-            session?: { userId: number };
+            session?:
+                { userId: number };
         }
     }
 };
