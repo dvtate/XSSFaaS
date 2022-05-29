@@ -16,16 +16,17 @@ import Task from '../task';
  * Format of response from ipinfo.io
  */
 interface IpInfo {
-    ip: string;         // '8.8.8.8'
-    hostname: string;   // 'dns.google'
+    ip?: string;         // '8.8.8.8'
+    hostname?: string;   // 'dns.google'
     anycast?: boolean;  // true
-    city: string;       // 'Mountain View'
-    region: string;     // 'California'
-    country: string;    // 'US'
-    loc: string;        // '37.4056,-122.0775'
-    org: string;        // 'AS15169 Google LLC'
-    postal: string;     // '94043'
-    timezone: string;   // 'America/Chicago'
+    city?: string;       // 'Mountain View'
+    region?: string;     // 'California'
+    country?: string;    // 'US'
+    loc?: string;        // '37.4056,-122.0775'
+    org?: string;        // 'AS15169 Google LLC'
+    postal?: string;     // '94043'
+    timezone?: string;   // 'America/Chicago'
+    bogon?: boolean;     // true
 }
 
 /**
@@ -51,9 +52,9 @@ class WorkerConnection {
         public socket: WebSocket,
     ) {
         // Set up event listeners
-        this.socket.on('message', this.onMessage);
-        this.socket.on('error', this.onError);
-        this.socket.on('close', this.onDisconnect);
+        this.socket.on('message', this.onMessage.bind(this));
+        this.socket.on('error', this.onError.bind(this));
+        this.socket.on('close', this.onDisconnect.bind(this));
 
         // Heartbeat
         this.socket.on('pong', () => { this.isAlive = true; });
@@ -95,55 +96,72 @@ class WorkerConnection {
 
                 // TODO once worker finishes it's activetasks we should terminate the socket
                 break;
-            case WsMessage.Type.DS_AUTH:
+            case WsMessage.Type.AUTH:
                 this.auth(msg.args[0], msg.args[1]);
                 break;
-            case WsMessage.Type.DS_TASK_DONE: {
-                // Get task
-                const id = Number(msg.args[0]);
-                const t = this.activeTasks.find(t => t.taskId == id);
-
-                // Move onto next task
-                this.activeTasks = this.activeTasks.filter(task => task !== t);
-                if (this.taskQueue.length)
-                    this.activeTasks.push(this.taskQueue.shift());
-
-                if (t) {
-                    // Update task tracking info
-                    t.endTs = Date.now();
-                    t.writeToDb();
-                } else {
-                    // Invalid taskId??
-                    debug('invalid end task id %d', id);
-                    debug('active:', this.activeTasks.map(t => t.taskId));
-                    debug('taskQueue:', this.taskQueue.map(t => t.taskId));
-                }
-
-                // Update task queue
-                this.updateLoadLL();
-            };
-
+            case WsMessage.Type.DS_TASK_DONE:
+                this.endTask(this.activeTasks.find(t => t.taskId == Number(msg.args[0])));
+                break;
+            case WsMessage.Type.DS_TASK_FAIL:
+                this.endTask(this.activeTasks.find(t => t.taskId == Number(msg.args[0])), true);
+                break;
             default:
                 debug('recieved invalid message: ', msg);
         }
     }
 
+    private async endTask(t: Task, fail = false) {
+        // Invalid taskId??
+        if (!t) {
+            debug('invalid end task id %d', t.taskId);
+            debug('active:', this.activeTasks.map(t => t.taskId));
+            debug('taskQueue:', this.taskQueue.map(t => t.taskId));
+            return;
+        }
+
+        // Move onto next task
+        this.activeTasks = this.activeTasks.filter(task => task !== t);
+        if (this.taskQueue.length) {
+            const t = this.taskQueue.shift();
+            t.startTs = Date.now();
+            this.activeTasks.push(t);
+        }
+
+        // Update task tracking info
+        t.endTs = Date.now();
+        if (fail)
+            t.fail();
+        else
+            t.writeToDb();
+
+        // Update task queue
+        this.updateLoadLL();
+    }
+
     /**
      * Handler for websocket 'close' event
      */
-    private async onDisconnect() {
+    private onDisconnect() {
         // Disable heartbeat
         clearInterval(this.heartbeat)
 
         // Don't accept more tasks
-        this.llNode.removeSelf();
+        if (this.llNode)
+            this.llNode.removeSelf();
 
         // Redistribute tasks still in task queue
-        await this.server.distribute(...this.taskQueue);
+        this.server.distribute(...this.taskQueue);
         this.socket.terminate();
 
         // Mark Tasks currently being processed as completed
         this.activeTasks.forEach(t => t.fail());
+
+        // Update last seen timestamp
+        queryProm(
+            `UPDATE Workers SET lastSeenTs=? WHERE workerId=?`,
+            [Date.now(), this.workerId].map(String),
+            false,
+        );
     }
 
     /**
@@ -164,7 +182,7 @@ class WorkerConnection {
 
         // Validate workerId
         const worker = await queryProm(
-            'SELECT threads, acceptForeignWork, ip, ipInfo FROM Workers WHERE workerId=? AND userId=? AND connectTs = NULL',
+            'SELECT threads, acceptForeignWork, ip, ipInfo FROM Workers WHERE workerId=? AND userId=? AND connectTs IS NULL',
             [workerId, String(this.userId)],
             true,
         );
@@ -181,8 +199,8 @@ class WorkerConnection {
         // Get relevant info from database
         const { threads, acceptForeignWork, ip, ipInfo } = worker[0];
         this.workerId = Number(workerId);
-        this.ipInfo = JSON.parse(ipInfo);
-        if (ipInfo && ip !== this.ipInfo.ip) { // Note: observes privacy policy
+        this.ipInfo = JSON.parse(ipInfo || null);
+        if ( !ipInfo || ip !== this.ipInfo.ip) { // Note: observes privacy policy
             // Maybe the user provided invalid ipinfo? why bother checking this????
             axios.get('https://ipinfo.io/' + ip, { headers: { 'Accepts' : 'application/json' } })
                 .then(r => { this.ipInfo = r.data as IpInfo; })
@@ -194,6 +212,7 @@ class WorkerConnection {
         // Begin accepting work
         debug('worker authenticated');
         this.server.acceptWorker(this);
+        this.socket.send(new WsMessage(WsMessage.Type.AUTH, []).toString());
         return true;
     }
 
@@ -207,12 +226,21 @@ class WorkerConnection {
      * @param t task to send to worker
      */
     doTask(t: Task) {
-        this.taskQueue.push(t);
-        this.socket.send(new WsMessage(WsMessage.Type.DW_NEW_TASK, [String(t.taskId), t.functionId, t.additionalData]));
+        // Send task to worker
+        this.socket.send(new WsMessage(WsMessage.Type.DW_NEW_TASK, [String(t.taskId), t.functionId, t.additionalData]).toString());
         if (this.activeTasks.length < this.threads)
-            this
-        this.llNode.sortedReinsert((a, b) =>
-            a.taskQueue.length / a.threads - b.taskQueue.length / b.threads);
+            this.activeTasks.push(t);
+        else
+            this.taskQueue.push(t);
+
+        // Update database
+        queryProm(
+            'UPDATE Tasks SET workerId=? WHERE taskId=?',
+            [String(this.workerId), String(t.taskId)],
+            false,
+        );
+
+        // Update Linked List
         this.updateLoadLL();
     }
 };
@@ -239,7 +267,7 @@ export class WsServer {
     });
 
     constructor() {
-        this.server.on('connection', this.onConnection);
+        this.server.on('connection', this.onConnection.bind(this));
         this.server.on('listening', () => debug('listening'));
     }
 
@@ -257,21 +285,21 @@ export class WsServer {
             return;
         }
 
-        //
-        if (!this.publicWorkers.next) {
-            debug('received a task but no workers!!!! vbnasdhjfnjklaslfn sjkldfjka');
-            // TODO maybe make a queue?
-        } else {
+        // Use public worker
+        if (this.publicWorkers.next) {
             this.publicWorkers.next.item.doTask(t);
             return;
         }
+
+        debug('received a task but no workers!!!! site is ded lol');
+        // NOTE database acts as queue
     }
 
     async distribute(...tasks: Task[]) {
         return Promise.all(tasks.map(this.distributeTask));
     }
 
-    acceptWorker(w: WorkerConnection) {
+    public acceptWorker(w: WorkerConnection) {
         // Public worker
         if (w.acceptForeignWork) {
             this.publicWorkers.insertAfter(w.llNode);
@@ -282,5 +310,23 @@ export class WsServer {
         if (!this.privateWorkers[w.userId])
             this.privateWorkers[w.userId] = new LL<WorkerConnection>();
         this.privateWorkers[w.userId].insertAfter(w.llNode);
+    }
+
+    /**
+     * Fetch new user-submitted tasks from the database
+     */
+    async getWork() {
+        // Get new work from db
+        const work = await queryProm(`
+            SELECT taskId, Tasks.functionId as functionId, userId, additionalData, arriveTs, allowForeignWorkers
+            FROM Tasks INNER JOIN Functions ON Tasks.functionId = Functions.functionId
+            WHERE workerId IS NULL AND failed=0`, [], true);
+        if (work instanceof Error)
+            return debug(work);
+
+        // Distribute new work to workers
+        return this.distribute(...work.map(w =>
+            new Task(w.taskId, w.functionId, w.userId, w.additionalData, w.arriveTs, w.allowForeignWorkers)
+        ));
     }
 }

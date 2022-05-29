@@ -4,6 +4,9 @@
   "description": "prototype version of xss routetr",
   "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
+    "start": "DEBUG=xss:rtr:* node dist/index.js",
+    "dev": "DEBUG=xss:rtr:* nodemon src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

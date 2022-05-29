@@ -1,10 +1,13 @@
 {
     "compilerOptions": {
-      "outDir": "static",
+      "outDir": "/dev/null",
       "module": "esnext",
       "target": "es6",
       "allowJs": true,
-      "moduleResolution": "node"
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "strictNullChecks": false,
+      "esModuleInterop": true
     },
     "include": [ "src/*.ts", "src/*/*.ts" ],
     "exclude" : [ "node_modules", "static" ]

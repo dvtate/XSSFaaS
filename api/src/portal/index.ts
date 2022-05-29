@@ -80,11 +80,8 @@ router.post('/user/login', async (req, res) => {
     }
     if (!user[0])
         return res.status(401).send('wrong email');
-    if (getPasswordHash(user[0].userId, password) !== user[0].passwordHash) {
-        console.log('calc:', getPasswordHash(user[0].userId, password));
-        console.log('db:', user[0].passwordHash);
+    if (getPasswordHash(user[0].userId, password) !== user[0].passwordHash)
         return res.status(401).send('wrong password');
-    }
 
     res.send(await generateToken(user[0].userId, stayLoggedIn));
     debug('User logged in', email);

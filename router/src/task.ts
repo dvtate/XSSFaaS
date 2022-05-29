@@ -18,7 +18,7 @@ export default class Task {
     /**
      * Did the task fail?
      */
-    public readonly failed: boolean = false;
+    public failed: boolean = false;
 
     /**
      * Relevant data passed to the worker
@@ -38,6 +38,7 @@ export default class Task {
         public readonly userId: number,
         additionalData: any,
         public readonly arriveTs = Date.now(),
+        public allowForeignWorkers = true,
     ) {
         this.additionalData = JSON.stringify(additionalData);
     }
@@ -57,6 +58,7 @@ export default class Task {
      * Task probably failed
      */
     async fail() {
+        this.failed = true;
         return queryProm(
             'UPDATE Tasks SET startTs=?, failed=1 WHERE taskId=?',
             [String(this.startTs), String(this.taskId)],

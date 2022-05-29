@@ -1,8 +1,6 @@
 
 // TODO add a type of log entry that's not shown to user, only to creator
 
-const logQueue = [];
-
 /**
  * Relevancy of the log message
  */
@@ -43,6 +41,11 @@ export class Log {
     ) {
     }
 }
+
+/**
+ * Logs accessible to the user
+ */
+const logQueue: Log[] = [];
 
 /**
  * Display log entry to the user

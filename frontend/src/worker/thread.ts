@@ -1,4 +1,5 @@
 import { Log, writeLog } from './logging'
+import WorkerApp from './worker';
 
 /**
  * Task to be processed by the thread
@@ -9,14 +10,14 @@ export class Task {
     public endTs: number;
 
     /**
-     * @param id task identifier
-     * @param fnId function identifier
+     * @param taskId task identifier
+     * @param functionId function identifier
      * @param additionalData arguments to the relevant function
      */
     constructor(
-        public id,
-        public fnId: string,
-        public additionalData: any,
+        public taskId: number,
+        public functionId: string,
+        public additionalData?: string,
     ) {
         this.receivedTs = Date.now();
     }
@@ -29,19 +30,14 @@ export class Task {
  * C2H_*: child to host only
  */
 enum IPCMessageType {
-    H2C_EMPTY_QUEUE,        // Host commands child to empty its queue
-                            // args: none
     H2C_NEW_TASK,           // Host gives the child a new task to do
                             // args: fn id, task id, additional data
-    H2C_CANCEL_TASK,        // Host tells child not to perfom previously given task
-                            // args: task id
-
     C2H_NEXT_TASK,          // Child informs host that it's moving to the next task
                             // args: none
     C2H_FAIL,               // Failure to complete a task/error
                             // args: debug info
     C2H_DEBUG_LOG,          // Task generated debugging logs to be sent back to user
-                            // arghs: Log object
+                            // args: Log object
 }
 
 export class IPCMessage {
@@ -50,7 +46,6 @@ export class IPCMessage {
         public type: IPCMessageType,
         public args?: any,
     ) {
-
     }
 }
 
@@ -64,11 +59,6 @@ export default class Thread {
     w = new Worker('index.worker.bundle.js');
 
     /**
-     * Uncompleted tasks sent to the worker
-     */
-    protected taskQueue: Task[] = [];
-
-    /**
      * Completed tasks sent to the worker
      */
     protected completedTasks: Task[] = [];
@@ -76,7 +66,7 @@ export default class Thread {
     /**
      * Task the worker is currently working on
      */
-    activeTask?: Task = undefined;
+    activeTask: Task = null;
 
     /**
      * Task ids already in use
@@ -87,6 +77,7 @@ export default class Thread {
      * @param index this thread's identifier
      */
     constructor(
+        public workerApp: WorkerApp,
         public index: number,
     ) {
         this.w.onmessage = m => this.onMessage(m);
@@ -102,15 +93,14 @@ export default class Thread {
             case IPCMessageType.C2H_NEXT_TASK:
                 this.activeTask.endTs = Date.now();
                 this.completedTasks.push(this.activeTask);
-                this.activeTask = this.taskQueue.shift();
-                this.activeTask.startTs = Date.now();
+                this.nextTask();
                 writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task`))
                 break;
             case IPCMessageType.C2H_FAIL:
                 writeLog(m.data.args);
                 break;
             default:
-                console.error('WTF? abnormal message type??', m.data);
+                console.error('WTF? invalid message type??', m.data);
                 writeLog(new Log(Log.Type.W_INFO, 'unexpected '))
         }
     }
@@ -123,9 +113,22 @@ export default class Thread {
         ));
     }
 
-    addTask(t: Task) {
-        this.taskQueue.push(t);
-        this.w.postMessage(new IPCMessage(IPCMessage.Type.H2C_NEW_TASK, t));
-        writeLog(new Log(Log.Type.S_INFO, `Assigned Task to thread ${this.index}`));
+    nextTask() {
+        this.activeTask = null;
+        if (this.workerApp.taskQueue.length)
+            this.doTask(this.workerApp.taskQueue.shift());
+    }
+
+    doTask(t: Task) {
+        if (this.activeTask)
+            console.error('cannot doTask when activeTask still in progress', t, this);
+        this.activeTask = t;
+        this.activeTask.startTs = Date.now();
+        this.w.postMessage(new IPCMessage(
+            IPCMessage.Type.H2C_NEW_TASK,
+            [this.activeTask.functionId, this.activeTask.additionalData]),
+        );
+        writeLog(new Log(Log.Type.W_INFO, `Task ${this.activeTask.taskId} assigned to Thread ${this.index}`));
+        this.workerApp.taskStarted(t);
     }
 }

@@ -34,14 +34,18 @@ router.post('/enlist', requireAuthMiddleware, async (req, res) => {
 });
 
 // Write log for task
-router.post('/log/:workerId/:fnId', async (req, res) => {
-    const { fnId, workerId } = req.params;
-    const { message, type } = req.body;
+router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
+    const { taskId } = req.params;
+    const { message, type, workerId } = req.body;
+    const { userId } = req.session;
+
+    // TODO verify worker has permission to log for this task
+    //      and that task is not already completed
 
     // Write log to server
     await db.queryProm(
-        'INSERT INTO FunctionLogs (functionId, workerId, logType, message, ts) VALUES (?, ?, ?, ?, ?);',
-        [fnId, workerId, type, message, Date.now()],
+        'INSERT INTO TaskLogs (taskId, logType, message, ts) VALUES (?, ?, ?, ?, ?);',
+        [taskId, type, message, Date.now()],
         false,
     );
 });

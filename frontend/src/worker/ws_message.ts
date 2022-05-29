@@ -1,4 +1,3 @@
-import * as WebSocket from 'ws';
 
 /**
  * Message types/prefixes so that tell us how to parse message
@@ -10,7 +9,6 @@ enum WebSocketMessageType {
     CLEAR_QUEUE, // no args
 
     // Sent by user to initialize connection
-    // Sent by server to confirm authentication successful
     AUTH, // args: authToken, workerId
 
     // Starting task
@@ -47,15 +45,10 @@ export default class WsMessage {
     ) {
     }
 
-    static fromBuffer(data: WebSocket.RawData, isBinary: boolean) {
+    static fromBuffer(data: any) {
         // TODO eventually we'll want to use binary messages
-        if (isBinary) {
-            throw new Error('unexpected binary message');
-            return null;
-        }
         if (data instanceof Array) {
-            console.error(data);
-            throw new Error('message should not be instance of array');
+            console.error('message should not be instance of array', data);
             return null;
         }
         try {
@@ -72,9 +65,10 @@ export default class WsMessage {
                     return new WsMessage(t);
 
                 // Single arg
-                // case WsMessage.Type.DS_TASK_START:
+                case WsMessage.Type.DS_TASK_START:
                 case WsMessage.Type.DS_TASK_DONE:
                 case WsMessage.Type.DW_CANCEL_TASK:
+                case WsMessage.Type.DS_TASK_FAIL:
                     return new WsMessage(t, [rem]);
 
                 // Need to extract args

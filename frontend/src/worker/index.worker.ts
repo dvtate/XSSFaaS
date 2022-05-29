@@ -5,26 +5,19 @@ import { Task, IPCMessage } from './thread';
 
 // Prevent Tasks from spawning additional workers
 // TODO paid plan lol
-const Worker_copy = window.Worker;
-window.Worker = function Worker() {
-    throw new Error('Cannot spawn additional workers without paid plan');
+const Worker_copy = globalThis.Worker;
+globalThis.Worker = function Worker() {
+    throw new Error('Cannot spawn additional web workers');
 } as any;
 
 
-let taskQueue: Task[] = [];
-
-onmessage = function (m: MessageEvent<IPCMessage>) {
+onmessage = async function (m: MessageEvent<IPCMessage>) {
     switch(m.data.type) {
-        case IPCMessage.Type.H2C_CANCEL_TASK:
-            taskQueue = taskQueue.filter(t => t.id !== m.data.args);
-            break;
-
         case IPCMessage.Type.H2C_NEW_TASK:
-            taskQueue.push(m.data.args);
-            break;
-
-        case IPCMessage.Type.H2C_EMPTY_QUEUE:
-            taskQueue = [];
+            // Do task
+            doTask(m.data.args)
+                .then(() => postMessage(new IPCMessage(IPCMessage.Type.C2H_NEXT_TASK)))
+                .catch(e => postMessage(new IPCMessage(IPCMessage.Type.C2H_FAIL, e)));
             break;
 
         default:
@@ -46,33 +39,12 @@ async function getFn(id: string) {
 class HostUtils {
     constructor(public task: Task) {}
     log(m: string) {
+        // TODO use {api}/worker/log/:taskId endpoint
         console.log(m);
     }
 }
 
 async function doTask(t: Task) {
-    const f = await getFn(t.fnId);
+    const f = await getFn(t.functionId);
     await f(t.additionalData, new HostUtils(t));
 }
-
-async function main() {
-    // Sleep function
-    const delay = async (ms: number): Promise<void> =>
-        new Promise(resolve => setTimeout(resolve, ms));
-
-    // TODO refactor this so that it doesn't tick when no tasks until new message received
-    for (;;) {
-        // Wait until there's a task to do
-        if (taskQueue.length === 0) {
-            await delay(100);
-            continue;
-        }
-
-        // Do task
-        const task = taskQueue.shift();
-        postMessage(new IPCMessage(IPCMessage.Type.C2H_NEXT_TASK));
-        await doTask(task);
-    }
-}
-
-main();
