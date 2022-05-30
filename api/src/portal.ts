@@ -4,8 +4,8 @@ const debug = Debugger('xss:api:portal');
 
 import validator from 'validator';
 
-import * as db from '../db';
-import { generateToken, getPasswordHash, requireAuthMiddleware } from '../auth';
+import * as db from './db';
+import { generateToken, getPasswordHash, requireAuthMiddleware } from './auth';
 
 // Express Router
 import { Router } from 'express';
@@ -120,7 +120,10 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
         return res.status(404).send('not found');
     const fn = fnq[0];
 
-    const logCount = await db.queryProm('SELECT COUNT(*) AS numLogs FROM FunctionLogs WHERE functionId = ?;', [fnId], true);
+    const logCount = await db.queryProm(`
+        SELECT COUNT(*) AS numLogs
+        FROM TaskLogs INNER JOIN Tasks ON TaskLogs.taskId = Tasks.taskId
+        WHERE functionId = ?;`, [fnId], true);
     if (logCount instanceof Error)
         console.error(logCount);
     else
@@ -244,7 +247,6 @@ const fileUploadMiddleware = fileUpload({
     limits: { fileSize: 20 * 1024 * 1024 },
     createParentPath: true,
 });
-
 router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUploadMiddleware, async (req, res) => {
     const { functionId } = req.params;
     if (!req.files || Object.keys(req.files).length === 0)

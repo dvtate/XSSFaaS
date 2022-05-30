@@ -31,7 +31,7 @@ async function getFn(id: string) {
     return jobFnCache[id]
         || (jobFnCache[id] = await import(
             /* webpackIgnore: true */
-            `${API_SERVER_URL}/${id}/index.js`
+            `${API_SERVER_URL}/worker/asset/${id}/index.js`
         ));
 }
 
@@ -46,5 +46,6 @@ class HostUtils {
 
 async function doTask(t: Task) {
     const f = await getFn(t.functionId);
-    await f(t.additionalData, new HostUtils(t));
+    console.log(f);
+    await f.default(t.additionalData, new HostUtils(t));
 }

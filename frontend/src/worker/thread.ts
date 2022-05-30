@@ -97,7 +97,8 @@ export default class Thread {
                 writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task`))
                 break;
             case IPCMessageType.C2H_FAIL:
-                writeLog(m.data.args);
+                console.error('task failed', m.data.args);
+                writeLog(new Log(Log.Type.W_FAILURE, `Task ${this.activeTask.taskId} failed`, m.data.args));
                 break;
             default:
                 console.error('WTF? invalid message type??', m.data);
@@ -126,8 +127,9 @@ export default class Thread {
         this.activeTask.startTs = Date.now();
         this.w.postMessage(new IPCMessage(
             IPCMessage.Type.H2C_NEW_TASK,
-            [this.activeTask.functionId, this.activeTask.additionalData]),
-        );
+            this.activeTask,
+            // [this.activeTask.functionId, this.activeTask.additionalData]
+        ));
         writeLog(new Log(Log.Type.W_INFO, `Task ${this.activeTask.taskId} assigned to Thread ${this.index}`));
         this.workerApp.taskStarted(t);
     }

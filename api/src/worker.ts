@@ -2,12 +2,12 @@
 import Debugger from 'debug';
 const debug = Debugger('xss:api:worker');
 
-import * as db from '../db';
+import * as db from './db';
 
 import { Router } from 'express';
 const router = Router();
 
-import { requireAuthMiddleware } from '../auth';
+import { requireAuthMiddleware } from './auth';
 
 // Sends data about the worker so that we can add it to database
 // Gives back a workerId
@@ -50,6 +50,12 @@ router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
     );
 });
 
-// Get files relevant to given function id from db
+// Get asset
+router.get('/asset/:functionId/:fname', async (req, res) => {
+    const { functionId, fname } = req.params;
 
+    // TODO authentication
+    // TODO use location stored in database in case remote or something
+    res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`);
+});
 export default router;

@@ -39,6 +39,9 @@ app.use('/portal', portalRouter);
 import workerRouter from './worker';
 app.use('/worker', workerRouter);
 
+import workRouter from './work';
+app.use('/work', workRouter);
+
 // Start sever
 const port = Number(process.env.PORT) || 8080;
 app.listen(port, () => debug(`Now listening on port ${port}`));

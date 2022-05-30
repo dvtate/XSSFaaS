@@ -92,7 +92,7 @@ export default class LL<T> {
 
         // Move to left
         n = this;
-        while (n.prev && compare(this.item, n.next.item) > 0)
+        while (n.prev && n.prev.item && compare(this.prev.item, this.item) > 0)
             n = n.prev;
         if (n != this)
             n.insertAfter(this);

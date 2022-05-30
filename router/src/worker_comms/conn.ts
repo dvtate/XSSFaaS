@@ -1,4 +1,3 @@
-import { IncomingMessage } from 'http';
 import * as WebSocket from 'ws';
 import axios from 'axios';
 
@@ -11,11 +10,12 @@ import { authUserSafe } from '../auth';
 import LL from '../util/ll';
 import WsMessage from './message';
 import Task from '../task';
+import WsServer from './server';
 
 /**
  * Format of response from ipinfo.io
  */
-interface IpInfo {
+ interface IpInfo {
     ip?: string;         // '8.8.8.8'
     hostname?: string;   // 'dns.google'
     anycast?: boolean;  // true
@@ -32,7 +32,7 @@ interface IpInfo {
 /**
  * Websocket connection with a worker tab
  */
-class WorkerConnection {
+export default class WorkerConnection {
     userId: number;
     workerId: number;
     threads: number;
@@ -244,89 +244,3 @@ class WorkerConnection {
         this.updateLoadLL();
     }
 };
-
-/**
- * Manages websocket connections with the different connected workers
- */
-export class WsServer {
-    /**
-     * Workers which accept tasks from anyone
-     */
-    private publicWorkers = new LL<WorkerConnection>();
-
-    /**
-     * Workers which only accept tasks from specific users
-     */
-    private privateWorkers: { [userId: number]: LL<WorkerConnection> } = {};
-
-    /**
-     * Websocket server which orchestrates workers
-     */
-    server = new WebSocket.Server({
-        port: Number(process.env.WS_PORT),
-    });
-
-    constructor() {
-        this.server.on('connection', this.onConnection.bind(this));
-        this.server.on('listening', () => debug('listening'));
-    }
-
-    private onConnection(socket: WebSocket, request: IncomingMessage) {
-        debug('new connection: ', request.socket.remoteAddress);
-        // This looks weird but
-        new WorkerConnection(this, socket);
-    }
-
-    private async distributeTask(t: Task) {
-        // Always use user's private workers if they have them
-        const pws = this.privateWorkers[t.userId];
-        if (pws && pws.next && pws.next.item) {
-            pws.next.item.doTask(t);
-            return;
-        }
-
-        // Use public worker
-        if (this.publicWorkers.next) {
-            this.publicWorkers.next.item.doTask(t);
-            return;
-        }
-
-        debug('received a task but no workers!!!! site is ded lol');
-        // NOTE database acts as queue
-    }
-
-    async distribute(...tasks: Task[]) {
-        return Promise.all(tasks.map(this.distributeTask));
-    }
-
-    public acceptWorker(w: WorkerConnection) {
-        // Public worker
-        if (w.acceptForeignWork) {
-            this.publicWorkers.insertAfter(w.llNode);
-            return;
-        }
-
-        // Private worker
-        if (!this.privateWorkers[w.userId])
-            this.privateWorkers[w.userId] = new LL<WorkerConnection>();
-        this.privateWorkers[w.userId].insertAfter(w.llNode);
-    }
-
-    /**
-     * Fetch new user-submitted tasks from the database
-     */
-    async getWork() {
-        // Get new work from db
-        const work = await queryProm(`
-            SELECT taskId, Tasks.functionId as functionId, userId, additionalData, arriveTs, allowForeignWorkers
-            FROM Tasks INNER JOIN Functions ON Tasks.functionId = Functions.functionId
-            WHERE workerId IS NULL AND failed=0`, [], true);
-        if (work instanceof Error)
-            return debug(work);
-
-        // Distribute new work to workers
-        return this.distribute(...work.map(w =>
-            new Task(w.taskId, w.functionId, w.userId, w.additionalData, w.arriveTs, w.allowForeignWorkers)
-        ));
-    }
-}

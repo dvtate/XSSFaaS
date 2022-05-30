@@ -61,7 +61,7 @@ export default class Task {
         this.failed = true;
         return queryProm(
             'UPDATE Tasks SET startTs=?, failed=1 WHERE taskId=?',
-            [String(this.startTs), String(this.taskId)],
+            [this.startTs ? String(this.startTs) : null, String(this.taskId)],
             false,
         );
     }

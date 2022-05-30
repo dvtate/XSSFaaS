@@ -75,6 +75,7 @@ export default class WsMessage {
                 // case WsMessage.Type.DS_TASK_START:
                 case WsMessage.Type.DS_TASK_DONE:
                 case WsMessage.Type.DW_CANCEL_TASK:
+                case WsMessage.Type.DS_TASK_START:
                     return new WsMessage(t, [rem]);
 
                 // Need to extract args
@@ -89,7 +90,9 @@ export default class WsMessage {
                     const additionalData = rem.slice(si2 + 1);
                     return new WsMessage(t, [taskId, funId, additionalData]);
                 };
+
                 default:
+                    console.log('invalid message type', t);
                     throw new Error('invalid message');
             }
 

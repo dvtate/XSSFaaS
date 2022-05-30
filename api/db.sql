@@ -41,7 +41,7 @@ CREATE TABLE Functions (
 CREATE TABLE FunctionAssets (
     functionId CHAR(36) REFERENCES Functions,
     assetId BIGINT PRIMARY KEY AUTO_INCREMENT,
-    location VARCHAR(240) UNIQUE NOT NULL,
+    location VARCHAR(240) NOT NULL,
     fileName VARCHAR(64) NOT NULL,
     sizeBytes INT UNSIGNED NOT NULL,
     creationTs BIGINT UNSIGNED NOT NULL,
