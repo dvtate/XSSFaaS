@@ -40,6 +40,9 @@ enum IPCMessageType {
                             // args: Log object
 }
 
+/**
+ * Message format for communication between host and web worker threads
+ */
 export class IPCMessage {
     static Type = IPCMessageType;
     constructor(
@@ -82,19 +85,19 @@ export default class Thread {
     ) {
         this.w.onmessage = m => this.onMessage(m);
         this.w.onerror = e => this.onError(e);
-        this.w.onmessageerror = m => console.warn('w.onmessageerror:', m);
+        this.w.onmessageerror = m => console.error('w.onmessageerror:', m);
     }
 
+    /**
+     * Websocket onmessage event handler
+     */
     private onMessage(m: MessageEvent<IPCMessage>) {
         switch (m.data.type) {
             case IPCMessageType.C2H_DEBUG_LOG:
                 console[m.data.args[0]](m.data.args[1]);
                 break;
             case IPCMessageType.C2H_NEXT_TASK:
-                this.activeTask.endTs = Date.now();
-                this.completedTasks.push(this.activeTask);
                 this.nextTask();
-                writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task`))
                 break;
             case IPCMessageType.C2H_FAIL:
                 console.error('task failed', m.data.args);
@@ -106,6 +109,9 @@ export default class Thread {
         }
     }
 
+    /**
+     * Websocket onerror event handler
+     */
     private onError(e: ErrorEvent) {
         writeLog(new Log(
             Log.Type.W_FAILURE,
@@ -114,8 +120,20 @@ export default class Thread {
         ));
     }
 
+    /**
+     * Called when task completed
+     */
     nextTask() {
-        this.activeTask = null;
+        // Finish task
+        const t = this.activeTask;
+        if (t) {
+            t.endTs = Date.now();
+            this.completedTasks.push(t);
+            this.activeTask = null;
+            writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task ${t.taskId}`));
+        }
+
+        // Move on to next task
         if (this.workerApp.taskQueue.length)
             this.doTask(this.workerApp.taskQueue.shift());
     }

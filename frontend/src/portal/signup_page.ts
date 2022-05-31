@@ -1,3 +1,5 @@
+import sha512 from 'crypto-js/sha512';
+import Base64 from 'crypto-js/enc-base64';
 import * as util from '../lib/util';
 import { API_SERVER_URL } from '../lib/globals';
 
@@ -58,7 +60,7 @@ submitBtn.onclick = async function submit() {
     const resp = await util.post(API_SERVER_URL + '/portal/user/signup', {
         name: nameInp.value,
         email: emailInp.value,
-        password: passwordInp1.value,
+        password: Base64.stringify(sha512(passwordInp1.value)),
     });
     if (resp.status === 200)
         window.location.href = 'login.html';

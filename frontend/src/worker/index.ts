@@ -6,7 +6,7 @@ import { Log, writeLog } from './logging';
 /**
  * Singleton Worker app instance
  */
-export const app = new WorkerApp();
+export let app = new WorkerApp();
 
 // Prevent user from closing tab
 // https://stackoverflow.com/questions/14746851/execute-javascript-function-before-browser-reloads-closes-browser-exits-page
@@ -28,5 +28,6 @@ window.addEventListener("beforeunload", function (evt) {
 if (!util.getCookie('authToken'))
     window.location.href = '/portal/login.html';
 
-
-// TODO controls
+// TODO Controls
+// - Prepare for disconnect
+// - ?

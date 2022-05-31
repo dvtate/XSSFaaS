@@ -65,10 +65,10 @@ export default class WsMessage {
                     return new WsMessage(t);
 
                 // Single arg
-                case WsMessage.Type.DS_TASK_START:
-                case WsMessage.Type.DS_TASK_DONE:
+                // case WsMessage.Type.DS_TASK_START:
+                // case WsMessage.Type.DS_TASK_DONE:
                 case WsMessage.Type.DW_CANCEL_TASK:
-                case WsMessage.Type.DS_TASK_FAIL:
+                // case WsMessage.Type.DS_TASK_FAIL:
                     return new WsMessage(t, [rem]);
 
                 // Need to extract args
@@ -93,6 +93,10 @@ export default class WsMessage {
         }
     }
 
+    /**
+     * Converts to a string for transmission
+     * @returns string message
+     */
     toString() {
         return this.type.toString() + ' ' + this.args.map(a => a.toString()).join(' ');
     }

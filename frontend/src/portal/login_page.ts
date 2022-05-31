@@ -1,3 +1,6 @@
+import sha512 from 'crypto-js/sha512';
+import Base64 from 'crypto-js/enc-base64';
+
 import * as util from '../lib/util';
 import { API_SERVER_URL } from '../lib/globals';
 
@@ -8,11 +11,11 @@ const submitBtn = document.getElementById('btn-submit') as HTMLButtonElement;
 const invalidSpan = document.getElementById('invalid-reason') as HTMLSpanElement;
 const stayLoggedInInp = document.getElementById('chk-stay-logged-in') as HTMLInputElement;
 
-
+// Handle submit
 (document.getElementsByTagName('form')[0] as HTMLFormElement).onsubmit = async function () {
     // Get data from form
     const email = emailInp.value;
-    const password = passwordInp.value;
+    const password = Base64.stringify(sha512(passwordInp.value));
     const stayLoggedIn = !!stayLoggedInInp.value;
 
     // Make request

@@ -11,6 +11,7 @@ if (link) {
     }
 }
 
+// Dark/light mode switch
 const themeToggle = document.getElementById('theme-toggle');
 if (themeToggle)
     themeToggle.onclick = function() {

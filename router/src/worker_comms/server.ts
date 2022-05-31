@@ -42,6 +42,10 @@ export default class WsServer {
         new WorkerConnection(this, socket);
     }
 
+    /**
+     * Distribute task to workers
+     * @param t
+     */
     private async distributeTask(t: Task) {
         // Always use user's private workers if they have them
         const pws = this.privateWorkers[t.userId];
@@ -56,14 +60,23 @@ export default class WsServer {
             return;
         }
 
-        debug('received a task but no workers!!!! site is ded lol');
-        // NOTE database acts as queue
+        // NOTE database acts as queue so no worries
+        debug('received task but no workers!');
     }
 
+    /**
+     * Distribute tasks to workers
+     * @param tasks tasks to distribute
+     * @returns promise
+     */
     async distribute(...tasks: Task[]) {
         return Promise.all(tasks.map(this.distributeTask.bind(this)));
     }
 
+    /**
+     * Add worker to our datastructures
+     * @param w worker connection
+     */
     public acceptWorker(w: WorkerConnection) {
         // Public worker
         if (w.acceptForeignWork) {

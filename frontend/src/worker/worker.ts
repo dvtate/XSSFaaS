@@ -1,7 +1,7 @@
 import { API_SERVER_URL, ENABLE_GEO_FEATURE, ROUTER_WS_URL } from "../lib/globals";
 import { Log, writeLog } from './logging';
 import * as util from '../lib/util';
-import WsMessage from "./ws_message";
+import WsMessage from "./message";
 import Thread, { Task } from "./thread";
 
 export default class WorkerApp {
@@ -85,6 +85,7 @@ export default class WorkerApp {
         writeLog(new Log(Log.Type.S_INFO, 'Sent authentication request to router'));
     }
 
+    // Task tracking messages
     taskStarted(t: Task) {
         return this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_START, [String(t.taskId)]).toString());
     }
@@ -95,6 +96,9 @@ export default class WorkerApp {
         return this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_FAIL, [String(t.taskId)]).toString());
     }
 
+    /**
+     * Assign task to a worker thread or put it into task queue
+     */
     private newTask(t: Task) {
         // If there are idle threads put them to work
         const inactiveThread = this.threads.find(t => !t.activeTask);
@@ -107,6 +111,9 @@ export default class WorkerApp {
         this.taskQueue.push(t);
     }
 
+    /**
+     * WebSocket onmessage handler
+     */
     async onMessage(ev: MessageEvent) {
         // Parse message
         const m = WsMessage.fromBuffer(ev.data);
@@ -154,7 +161,11 @@ export default class WorkerApp {
         return this.taskQueue.length !== origLen;
     }
 
+    /**
+     * Tell server we're about to disconnect
+     */
     clearQueue() {
         this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
+        this.taskQueue = [];
     }
 };

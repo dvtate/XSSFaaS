@@ -90,5 +90,4 @@ async function makeLists() {
         }
     });
 }
-
 makeLists();
