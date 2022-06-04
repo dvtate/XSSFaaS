@@ -2,7 +2,7 @@
 /**
  * URL to connect to the API server
  */
-export const API_SERVER_URL = 'http://localhost:8050';
+export const API_SERVER_URL = 'http://xssaas.com/api';
 
 /**
  * URL to connect to the Router server

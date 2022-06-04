@@ -26,21 +26,17 @@ app.use(cors({
 }));
 
 // Probably better to have this hosted by 3rd party static host w/ a cdn
-app.use('/static', express.static('../../frontend/static/'));
-
-// 3rd party api endpoints
-// import apiRouter from './api';
-// app.use('/api/', apiRouter);
+app.use('/', express.static('static'));
 
 // Endpoints
 import portalRouter from './portal';
-app.use('/portal', portalRouter);
+app.use('/api/portal', portalRouter);
 
 import workerRouter from './worker';
-app.use('/worker', workerRouter);
+app.use('/api/worker', workerRouter);
 
 import workRouter from './work';
-app.use('/work', workRouter);
+app.use('/api/work', workRouter);
 
 // Start sever
 const port = Number(process.env.PORT) || 8080;
