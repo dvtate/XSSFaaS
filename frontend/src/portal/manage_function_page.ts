@@ -15,7 +15,7 @@ const fnCallUrl = document.getElementById('url-fxn-call') as HTMLSpanElement; //
 
 // Populate with user provided id
 fnIdSpan.innerHTML = functionId;
-fnCallUrl.innerHTML = API_SERVER_URL + '/work/call/' + functionId;
+fnCallUrl.innerHTML = API_SERVER_URL + '/work/task/' + functionId;
 
 // Form elements
 const fnNameInp = document.getElementById('fn-name') as HTMLInputElement;
