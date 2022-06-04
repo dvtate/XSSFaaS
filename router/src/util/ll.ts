@@ -83,7 +83,7 @@ export default class LL<T> {
             n = n.next;
         if (n != this) {
             // Edge case for new end of list
-            if (!n.next && compare(this.item, n.next.item) < 0)
+            if (!n.next && compare(this.item, n.item) < 0)
                 n.insertAfter(this);
             else
                 n.prev.insertAfter(this);

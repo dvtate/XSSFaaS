@@ -79,6 +79,7 @@ export async function authUserSafe(token: string) {
  * @returns sha-512 hex string
  */
 export function getPasswordHash(userId: string, password: string) {
+    console.log(`${userId}     ${password}`);
     return crypto
         .createHash('sha512')
         .update(`${userId}${PW_SALT}${password}`)
