@@ -22,7 +22,7 @@ export async function generateToken(userId: number, stayLoggedIn: boolean = fals
         // add token to db
         const error = await db.queryProm(`INSERT INTO AuthTokens (authToken, userId, authTokenExpiration)
                 VALUES (?, ?, NOW() + ${duration})`,
-            [token, userId]);
+            [token, String(userId)]);
 
         if (!(error instanceof Error))
             return token;
