@@ -36,11 +36,11 @@ router.post('/user/signup', async (req, res) => {
         return res.status(400).send('email already in use');
 
     // Put user into the database
-    let userId;
+    let userId: number;
     for (;;) {
         // Make pw hash
         userId = Math.random() * Number.MAX_SAFE_INTEGER;
-        const pwHash = getPasswordHash(String(userId), password);
+        const pwHash = getPasswordHash(userId, password);
 
         // Try to create user
         const result = await db.queryProm(

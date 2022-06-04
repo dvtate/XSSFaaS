@@ -12,7 +12,7 @@ const { PW_SALT } = process.env;
  * @param stayLoggedIn should we increase the login duration to 6 months?
  * @returns valid auth token
  */
-export async function generateToken(userId: string, stayLoggedIn: boolean = false) {
+export async function generateToken(userId: number, stayLoggedIn: boolean = false) {
     const duration = stayLoggedIn ? "interval 6 month" : "interval 12 hour";
 
     for (;;) {
@@ -78,7 +78,7 @@ export async function authUserSafe(token: string) {
  * @param password password to hash
  * @returns sha-512 hex string
  */
-export function getPasswordHash(userId: string, password: string) {
+export function getPasswordHash(userId: number, password: string) {
     return crypto
         .createHash('sha512')
         .update(`${userId}${PW_SALT}${password}`)

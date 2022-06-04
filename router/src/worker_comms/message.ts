@@ -106,4 +106,3 @@ export default class WsMessage {
         return this.type.toString() + ' ' + this.args.map(a => a.toString()).join(' ');
     }
 }
-
