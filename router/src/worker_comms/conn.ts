@@ -39,6 +39,7 @@ export default class WorkerConnection {
     ipInfo: IpInfo;
     acceptForeignWork: boolean;
 
+    // TODO these should prob be Map<number, Task>
     private taskQueue: Task[] = [];
     private activeTasks: Task[] = [];
 
@@ -104,6 +105,13 @@ export default class WorkerConnection {
                 break;
             case WsMessage.Type.DS_TASK_FAIL:
                 this.endTask(this.activeTasks.find(t => t.taskId == Number(msg.args[0])), true);
+                break;
+            case WsMessage.Type.DS_TASK_START:
+                if (this.activeTasks[this.activeTasks.length - 1].taskId !== Number(msg.args[0])) {
+                    debug('unexpected task started %d', msg.args[0]);
+                    debug('active:', this.activeTasks.map(t => t.taskId));
+                    debug('taskQueue:', this.taskQueue.map(t => t.taskId));
+                }
                 break;
             default:
                 debug('recieved invalid message: ', msg);
