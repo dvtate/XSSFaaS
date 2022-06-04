@@ -6,7 +6,6 @@
         <title>XSSaaS</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
-        <script src="js/page.bundle.js" async defer></script>
         <style>
             h2 {
                 font-size: larger;
@@ -28,10 +27,10 @@
                 <input type="checkbox" id="ms-menu-toggle" />
                 <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
                 <ul>
-                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
                     <li><a href="">Home</a></li>
                     <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
                     <li><a id="nav-link-portal" href="portal/">Portal</a></li>
+                    <li><i class="fas fa-sun" id="theme-toggle"></i></li>
                 </ul>
             </nav>
         </div>
@@ -46,13 +45,29 @@
             <!-- Should probably address Security and Stability as these are kinda spooky -->
 
             <h2>Technology In Use</h2>
-            <p>XSSaaS uses and enables the use of modern web technology in order to maximize performance and ease of use while
+            <p>XSSaaS uses modern web technology in order to maximize performance and ease of use while
                 avoiding the bloat of many popular frameworks.</p>
             <ul>
                 <li>Web Workers</li>
                 <li>WebSockets</li>
                 <li>HTML + TypeScript + Webpack (no frameworks)</li>
             </ul>
+            <h2>Stack</h2>
+            <p>In order to leverage the platform you may find some recent web technologies useful.
+                For example, WebAssembly - in order to get optimal performance or use pre-existing code
+                and WebRTC - for communication between workers. </p>
+            <h2>How it works</h2>
+            <p>This looks like a lot but really it's not.</p>
+            <ul>
+                <li>Upload JavaScript file with default function export (along with any other relevant project files)</li>
+                <li>Specify any other policies and metadata assocaited with the function</li>
+                <li>Open a worker tab (or rely on others to donate their resources)</li>
+                <li>Use an API endpoint to send tasks to the function (which can include relevant data)</li>
+            </ul>
+
+            <p>Simply upload a javascript file with a default export that's callable and any other relevant project files,
+                specify any relevant policies for it. Open a worker tab (or rely on others to generously donate their resources).
+            </p>
         </div>
 
         <footer class="ms-footer">
@@ -62,5 +77,6 @@
                     - <a href="portal/">User Portal</a></p>
             </div>
         </footer>
+        <script src="js/page.bundle.js" async defer></script>
     </body>
 </html>

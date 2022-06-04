@@ -2,7 +2,7 @@ import { getCookie } from "./util";
 
 const link = document.getElementById('nav-link-portal') as HTMLAnchorElement;
 if (link) {
-    if ( getCookie('authToken') ) {
+    if (getCookie('authToken')) {
         link.innerHTML = 'Portal';
         link.href = '/portal';
     } else {
@@ -12,6 +12,7 @@ if (link) {
 }
 
 // Dark/light mode switch
+// TODO store theme preference in a cookie
 const themeToggle = document.getElementById('theme-toggle');
 if (themeToggle)
     themeToggle.onclick = function() {
@@ -28,4 +29,3 @@ if (themeToggle)
         themeToggle.classList.remove('fa-moon');
         themeToggle.classList.add('fa-sun');
     };
-
