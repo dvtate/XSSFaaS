@@ -1,6 +1,10 @@
 import { IncomingMessage } from 'http';
 import * as WebSocket from 'ws';
 
+// imports for ssl
+import { createServer as HttpsServer } from 'https';
+import * as fs from 'fs';
+
 import Debugger from 'debug';
 const debug = Debugger('xss:rtr:ws');
 
@@ -27,19 +31,56 @@ export default class WsServer {
     /**
      * Websocket server which orchestrates workers
      */
-    server = new WebSocket.Server({
-        port: Number(process.env.WS_PORT),
-    });
+    server: WebSocket.Server;
 
-    constructor() {
-        this.server.on('connection', this.onConnection.bind(this));
-        this.server.on('listening', () => debug('listening'));
+    /**
+     * @constructor
+     * Start the websocket server
+     */
+    constructor(port = Number(process.env.WS_PORT) || 6333) {
+        this.startServer(port);
     }
 
+    /**
+     * Handles 'connection' websocket event
+     */
     private onConnection(socket: WebSocket, request: IncomingMessage) {
-        debug('new connection: ', request.socket.remoteAddress);
-        // This looks weird but
+        debug('New connection: ', request.socket.remoteAddress);
+        // When the WorkerConnection is ready it will call this.acceptWorker()
         new WorkerConnection(this, socket);
+    }
+
+    /**
+     * Add event listeners to the websocket server
+     */
+    private bindWsListeners() {
+        this.server.on('connection', this.onConnection.bind(this));
+        this.server.on('listening', () => debug('Listening'));
+        this.server.on('close', () => debug('Connection closed??'));
+        this.server.on('error', (...args) => debug('Error', args));
+    }
+
+    /**
+     * Initialize this.server as a Websocket server
+     * @param port port number to listen on
+     */
+    private startServer(port: number) {
+        // Use wss://
+        if (process.env.SSL_KEY && process.env.SSL_CERT) {
+            const httpsServer = HttpsServer({
+                key: fs.readFileSync(process.env.SSL_KEY),
+                cert: fs.readFileSync(process.env.SSL_CERT),
+            });
+            this.server = new WebSocket.Server({
+                port, server: httpsServer,
+            });
+            this.bindWsListeners();
+            httpsServer.listen(port, () => debug('https listening on ' + port));
+        }
+
+        // Use ws://
+        this.server = new WebSocket.Server({ port });
+        this.bindWsListeners();
     }
 
     /**

@@ -52,6 +52,7 @@ const logQueue: Log[] = [];
  */
 export function writeLog(log: Log) {
     const logView = document.getElementById('log-view');
+    const isScrolled = logView.scrollTop == logView.scrollHeight;
 
     // Update page and log queue
     function writeEntry(log: Log) {
@@ -60,6 +61,8 @@ export function writeLog(log: Log) {
         div.onclick = () => showLog(log);
         div.innerText = `${log.date.toISOString()}: ${log.message}`;
         logView.appendChild(div);
+        if (isScrolled)
+            logView.scrollTop = logView.scrollHeight;
     }
     writeEntry(log);
     logQueue.push(log);
@@ -69,6 +72,7 @@ export function writeLog(log: Log) {
         logQueue.splice(-10_000);
         logView.innerHTML = '';
         logQueue.forEach(writeEntry);
+        logView.scrollTop = logView.scrollHeight;
     }
 }
 
