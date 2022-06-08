@@ -38,6 +38,9 @@ enum IPCMessageType {
                             // args: debug info
     C2H_DEBUG_LOG,          // Task generated debugging logs to be sent back to user
                             // args: Log object
+
+    H2C_WORKERID,           // Set the workerId in the thread
+                            // args: workerId
 }
 
 /**
@@ -150,5 +153,12 @@ export default class Thread {
         ));
         writeLog(new Log(Log.Type.W_INFO, `Task ${this.activeTask.taskId} assigned to Thread ${this.index}`));
         this.workerApp.taskStarted(t);
+    }
+
+    auth() {
+        this.w.postMessage(new IPCMessage(
+            IPCMessage.Type.H2C_WORKERID,
+            this.workerApp.workerId,
+        ));
     }
 }

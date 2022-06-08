@@ -98,5 +98,8 @@ export default class LL<T> {
             n.insertAfter(this);
     }
 
-    // TODO iterator
+    // TODO
+    [Symbol.iterator]() {
+        throw new Error('not implemented');
+    }
 }

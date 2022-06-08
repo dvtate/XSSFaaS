@@ -18,6 +18,7 @@ import WorkerConnection from './conn';
  * Manages websocket connections with the different connected workers
  */
 export default class WsServer {
+    // TODO new algorithm
     /**
      * Workers which accept tasks from anyone
      */
