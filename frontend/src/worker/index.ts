@@ -18,6 +18,7 @@ window.addEventListener("beforeunload", function (evt) {
 
     // TODO send CLEAR_QUEUE message to router
     // which eventually tells user when it's ok to close
+    // TODO tell user it's ok to close once last tasks finish
     app.clearQueue();
     writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
     return null;

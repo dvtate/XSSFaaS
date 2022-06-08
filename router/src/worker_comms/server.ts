@@ -14,20 +14,30 @@ import LL from '../util/ll';
 import Task from '../task';
 import WorkerConnection from './conn';
 
+interface Function {
+    // // Irrelevant
+    // name: string;
+    // about: string;
+    // creationTs: number;
+
+    // Useful here
+    functionId: string;
+    userId: number;
+    preventReuse: boolean;
+    allowForeignWorkers: boolean;
+    optSpec: 'CPU' | 'NET' | 'BALANCED';
+}
+
 /**
  * Manages websocket connections with the different connected workers
  */
 export default class WsServer {
     // TODO new algorithm
-    /**
-     * Workers which accept tasks from anyone
-     */
-    private publicWorkers = new LL<WorkerConnection>();
 
     /**
-     * Workers which only accept tasks from specific users
+     * Workers to distribute tasks to
      */
-    private privateWorkers: { [userId: number]: LL<WorkerConnection> } = {};
+    private workers: WorkerConnection[] = [];
 
     /**
      * Websocket server which orchestrates workers
@@ -85,28 +95,6 @@ export default class WsServer {
     }
 
     /**
-     * Distribute task to workers
-     * @param t
-     */
-    private async distributeTask(t: Task) {
-        // Always use user's private workers if they have them
-        const pws = this.privateWorkers[t.userId];
-        if (pws && pws.next && pws.next.item) {
-            pws.next.item.doTask(t);
-            return;
-        }
-
-        // Use public worker
-        if (this.publicWorkers.next) {
-            this.publicWorkers.next.item.doTask(t);
-            return;
-        }
-
-        // NOTE database acts as queue so no worries
-        debug('received task but no workers!');
-    }
-
-    /**
      * Distribute tasks to workers
      * @param tasks tasks to distribute
      * @returns promise
@@ -116,21 +104,20 @@ export default class WsServer {
     }
 
     /**
-     * Add worker to our datastructures
+     * Start distributing work to this worker
      * @param w worker connection
      */
-    public acceptWorker(w: WorkerConnection) {
-        // Public worker
-        if (w.acceptForeignWork) {
-            this.publicWorkers.insertAfter(w.llNode);
-            return;
-        }
-
-        // Private worker
-        if (!this.privateWorkers[w.userId])
-            this.privateWorkers[w.userId] = new LL<WorkerConnection>();
-        this.privateWorkers[w.userId].insertAfter(w.llNode);
+    public addWorker(w: WorkerConnection) {
+        this.workers.push(w);
     }
+
+    /**
+     * Stop distributing work to this worker
+     */
+    public removeWorker(w: WorkerConnection) {
+        this.workers = this.workers.filter(wkr => wkr !== w);
+    }
+
 
     /**
      * Fetch new user-submitted tasks from the database
@@ -138,9 +125,11 @@ export default class WsServer {
     async getWork() {
         // Get new work from db
         const work = await queryProm(`
-            SELECT taskId, Tasks.functionId as functionId, userId, additionalData, arriveTs, allowForeignWorkers
+            SELECT taskId, Tasks.functionId as functionId, userId, additionalData, arriveTs,
+                allowForeignWorkers, optSpec, preventReuse
             FROM Tasks INNER JOIN Functions ON Tasks.functionId = Functions.functionId
-            WHERE workerId IS NULL AND failed=0`, [], true);
+            WHERE workerId IS NULL AND failed=0
+            ORDER BY arriveTs ASC`, [], true);
         if (work instanceof Error)
             return debug(work);
         // debug('found %d tasks', work.length);
@@ -150,4 +139,34 @@ export default class WsServer {
             new Task(w.taskId, w.functionId, w.userId, w.additionalData, w.arriveTs, w.allowForeignWorkers)
         ));
     }
+
+    /**
+     * Distribute task to workers
+     * @param t
+     */
+    private async distributeTask(t: Task) {
+        // TODO preventReuse + cutoff
+        const overloadedCutoff = 10;
+
+        // Filter workers based on policy
+        let workers = this.workers;
+        if (!t.allowForeignWorkers)
+            workers = workers.filter(w => w.userId === t.userId);
+        if (t.preventReuse)
+            workers = workers.filter(w => w.knownFunctions.has(t.functionId));
+
+        // Don't distribute if not enough workers or workers overloaded
+        if (!workers.length) {
+            debug('no workers');
+            return;
+        }
+        workers = workers.sort((a, b) => a.jobsPerProc() - b.jobsPerProc());
+        const worker = workers[0];
+        if (worker.jobsPerProc() > overloadedCutoff) {
+            debug('workers overloaded');
+            return;
+        }
+        worker.doTask(t);
+    }
+
 }
