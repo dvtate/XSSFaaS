@@ -4,8 +4,8 @@
 export default class LL<T> {
     /**
      * @param item item stored in this LL node
-     * @param prev
-     * @param next
+     * @param prev previous item in the LL
+     * @param next next item in the LL
      */
     constructor(
         public item: T = null,
@@ -98,5 +98,15 @@ export default class LL<T> {
             n.insertAfter(this);
     }
 
-    // TODO iterator
+    // TODO
+    *[Symbol.iterator]() {
+        let n: LL<T> = this;
+        let i = 0;
+        do {
+            yield n.item;
+            n = n.next;
+            i++;
+        } while (n);
+        return i;
+    };
 }

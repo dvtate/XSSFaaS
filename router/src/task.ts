@@ -1,6 +1,5 @@
 import { queryProm } from "./db";
 
-
 /**
  * Task to be processed by the thread
  */
@@ -31,6 +30,8 @@ export default class Task {
      * @param userId id for user who submitted the task
      * @param additionalData arguments to the relevant function
      * @param arriveTs Time at which the task was received
+     * @param allowForeignWorkers can this task be performed by workers not managed by userId?
+     * @param preventReuse should this task be spread to as many workers as possible
      */
     constructor(
         public readonly taskId: number,
@@ -39,6 +40,7 @@ export default class Task {
         additionalData: any,
         public readonly arriveTs = Date.now(),
         public allowForeignWorkers = true,
+        public preventReuse = false,
     ) {
         this.additionalData = JSON.stringify(additionalData);
     }

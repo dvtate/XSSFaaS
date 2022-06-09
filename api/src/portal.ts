@@ -174,7 +174,18 @@ router.post('/function', requireAuthMiddleware, async (req, res) => {
         console.error(qr);
         return res.status(500).send('db error');
     }
-    res.send(qr[1][0].functionId);
+    const { functionId } = qr[1][0];
+    const iq = await db.queryProm(
+        'INSERT INTO FunctionInvokeKeys (userId, functionId, token, expires) '
+        + 'VALUES (?, ?, UUID(), NULL)',
+        [userId, functionId],
+        false,
+    );
+    if (iq instanceof Error) {
+        console.error(iq);
+        return res.status(500).send('db error');
+    }
+    res.send(functionId);
 });
 
 // Alter function
@@ -219,21 +230,49 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
     res.status(200).send('ok');
 });
 
+
+/**
+ * Remove a function and all of it's associated data
+ * @param functionId id of function to be deleted
+ */
+async function deleteFunction(functionId: string) {
+    // Queries required to delete the function
+    const queries: Array<[string, string[]]> = [
+        ['DELETE FROM TasksLogs WHERE taskId IN (SELECT taskId FROM Tasks WHERE functionId = ?)', [functionId]],
+        ['DELETE FROM Tasks WHERE functionId = ?', [functionId]],
+        ['DELETE FROM FunctionInvokeKeys WHERE functionId = ?', [functionId]],
+        ['DELETE FROM FunctionAssets WHERE functionId=?', [functionId]],
+        ['DELETE FROM Functions WHERE functionId = ?', [functionId]],
+    ];
+
+    // Execute the queries in order
+    for (const q of queries) {
+        const r = await db.queryProm(...q, false);
+        if (r instanceof Error)
+            throw r;
+    }
+}
+
 // Delete function
 router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const { functionId } = req.params;
 
-    const q = await db.queryProm(
-        'DELETE FROM Functions WHERE functionId = ? AND userId = ?;',
+    // Check if they own this function
+    const ownedFn = await db.queryProm(
+        'SELECT creationTs FROM Functions WHERE functionId = ? AND userId = ?',
         [functionId, String(userId)],
-        false,
+        true,
     );
-
-    if (q instanceof Error) {
-        console.error(q);
+    if (ownedFn instanceof Error) {
+        console.error(ownedFn);
         return res.status(500).send('db error');
     }
+    if (ownedFn.length == 0) {
+        debug('unauthorized to delete function');
+        return res.status(404).send("You don't own a function with this ID");
+    }
+
     res.status(200).send('ok');
 });
 
@@ -336,5 +375,6 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
 // Update user
 // User stats
 // Enable/Disable worker (to allow safe shutdown)
+// delete user
 
 export default router;

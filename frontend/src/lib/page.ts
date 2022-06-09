@@ -1,5 +1,6 @@
-import { getCookie } from "./util";
+import { getCookie, setCookie } from "./util";
 
+// Change link text
 const link = document.getElementById('nav-link-portal') as HTMLAnchorElement;
 if (link) {
     if (getCookie('authToken')) {
@@ -11,21 +12,37 @@ if (link) {
     }
 }
 
-// Dark/light mode switch
-// TODO store theme preference in a cookie
-const themeToggle = document.getElementById('theme-toggle');
-if (themeToggle)
-    themeToggle.onclick = function() {
-        // Dark to light
-        if (themeToggle.classList.contains('fa-sun')) {
-            document.getElementsByTagName('html')[0].setAttribute('data-theme', 'light');
-            themeToggle.classList.remove('fa-sun');
-            themeToggle.classList.add('fa-moon');
-            return;
-        }
+/////////////////////////////////////////
+// Light/dark mode themes
+/////////////////////////////////////////
 
-        // Light to dark
-        document.getElementsByTagName('html')[0].setAttribute('data-theme', 'dark');
+// Dark/light mode switch
+const themeToggle = document.getElementById('theme-toggle');
+
+// Change the theme used across the site
+function setTheme(t: 'dark' | 'light') {
+    // Set to 'dark'
+    if (t === 'dark') {
+        setCookie('theme', t, 1000 * 60 * 60 * 24 * 14);
+        document.getElementsByTagName('html')[0].setAttribute('data-theme', t);
         themeToggle.classList.remove('fa-moon');
         themeToggle.classList.add('fa-sun');
-    };
+        return;
+    }
+
+    // Set to 'light'
+    setCookie('theme', t, 1000 * 60 * 60 * 24 * 14);
+    document.getElementsByTagName('html')[0].setAttribute('data-theme', t);
+    themeToggle.classList.remove('fa-sun');
+    themeToggle.classList.add('fa-moon');
+}
+
+// Toggle theme on click
+if (themeToggle)
+    themeToggle.onclick = () =>
+        setTheme(themeToggle.classList.contains('fa-sun') ? 'light' : 'dark');
+
+// If they have a preferred theme already
+const themeCookie = getCookie('theme') as 'dark' | 'light' | null;
+if (themeCookie)
+    setTheme(themeCookie);

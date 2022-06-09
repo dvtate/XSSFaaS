@@ -86,3 +86,11 @@ CREATE TABLE TaskLogs (
     message TEXT NOT NULL,
     ts BIGINT UNSIGNED NOT NULL
 );
+
+-- In order to invoke the function an addtional token is required for security
+CREATE TABLE FunctionInvokeKeys (
+    userId BIGINT REFERENCES Users,
+    functionId CHAR(36) REFERENCES Functions,
+    token CHAR(36) UNIQUE NOT NULL,
+    expires DATE DEFAULT NULL
+);

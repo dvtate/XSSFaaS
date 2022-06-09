@@ -43,10 +43,13 @@ export default class WorkerConnection {
     private taskQueue: Task[] = [];
     private activeTasks: Task[] = [];
 
-    readonly llNode: LL<WorkerConnection>;
-
     private isAlive = true;
     private heartbeat: NodeJS.Timer;
+
+    /**
+     * These functions should be cached already
+     */
+    public knownFunctions: Set<string>;
 
     constructor(
         public server: WsServer,
@@ -65,8 +68,6 @@ export default class WorkerConnection {
             this.isAlive = false;
             this.socket.ping();
         }, 30000);
-
-        this.llNode = new LL(this);
     }
 
     /**
@@ -90,10 +91,8 @@ export default class WorkerConnection {
         switch (msg.type) {
             case WsMessage.Type.CLEAR_QUEUE:
                 // Redistribute work to other workers
+                this.server.removeWorker(this);
                 this.server.distribute(...this.taskQueue.splice(0));
-
-                // Stop receiving work
-                this.llNode.removeSelf();
 
                 // TODO once worker finishes it's activetasks we should terminate the socket
                 break;
@@ -141,9 +140,6 @@ export default class WorkerConnection {
             t.fail();
         else
             t.writeToDb();
-
-        // Update task queue
-        this.updateLoadLL();
     }
 
     /**
@@ -154,8 +150,7 @@ export default class WorkerConnection {
         clearInterval(this.heartbeat)
 
         // Don't accept more tasks
-        if (this.llNode)
-            this.llNode.removeSelf();
+        this.server.removeWorker(this);
 
         // Redistribute tasks still in task queue
         this.server.distribute(...this.taskQueue);
@@ -219,14 +214,13 @@ export default class WorkerConnection {
 
         // Begin accepting work
         debug('worker authenticated');
-        this.server.acceptWorker(this);
+        this.server.addWorker(this);
         this.socket.send(new WsMessage(WsMessage.Type.AUTH, []).toString());
         return true;
     }
 
-    private updateLoadLL() {
-        this.llNode.sortedReinsert((a, b) =>
-            a.taskQueue.length / a.threads - b.taskQueue.length / b.threads);
+    jobsPerProc() {
+        return this.taskQueue.length / this.threads;
     }
 
     /**
@@ -241,14 +235,14 @@ export default class WorkerConnection {
         else
             this.taskQueue.push(t);
 
+        // Worker caches function
+        this.knownFunctions.add(t.functionId);
+
         // Update database
         queryProm(
             'UPDATE Tasks SET workerId=? WHERE taskId=?',
             [String(this.workerId), String(t.taskId)],
             false,
         );
-
-        // Update Linked List
-        this.updateLoadLL();
     }
 };
