@@ -67,15 +67,14 @@ export default class WsServer {
     private startServer(port: number) {
         // Use wss://
         if (process.env.SSL_KEY && process.env.SSL_CERT) {
-            const httpsServer = HttpsServer({
+            const server = HttpsServer({
                 key: fs.readFileSync(process.env.SSL_KEY),
                 cert: fs.readFileSync(process.env.SSL_CERT),
             });
-            this.server = new WebSocket.Server({
-                port, server: httpsServer,
-            });
+            this.server = new WebSocket.Server({ server });
             this.bindWsListeners();
-            httpsServer.listen(port, () => debug('https listening on ' + port));
+            server.listen(port, () => debug('https listening on ' + port));
+	    return;
         }
 
         // Use ws://
