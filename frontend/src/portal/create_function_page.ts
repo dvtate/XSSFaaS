@@ -63,18 +63,23 @@ filesArea.ondrop = function (ev) {
     ev.preventDefault();
     // ev.stopPropagation();
 
+    // Get files from drop event
+    let files: File[] = [];
     if (ev.dataTransfer.items)
-        for (const item of ev.dataTransfer.items)
-            if (item.kind === 'file') {
-                const f = item.getAsFile();
-                if (f.size > 1000 * 1000 * 20) {
-                    filesArea.innerHTML += `<br/><span class="small-fname invalid">${f.name} is over 20 MB cap</span>`;
-                    continue;
-                }
-
-                filesArea.innerHTML += `<br/><span class="small-fname">${f.name} - ${f.size / 1000} kB</span>`;
-                projectFiles.push(f);
-            }
+        files = [...ev.dataTransfer.items].filter(i => i.kind === 'file').map(f => f.getAsFile());
     else if (ev.dataTransfer.files)
-        projectFiles.push(...ev.dataTransfer.files);
+        files = [...ev.dataTransfer.files];
+    else
+        console.error("wtf no files?", ev);
+
+    // Process files
+    files.forEach(f => {
+        if (f.size > 1000 * 1000 * 20) {
+            filesArea.innerHTML += `<br/><span class="small-fname invalid">${f.name} is over 20 MB cap</span>`;
+            return;
+        }
+
+        filesArea.innerHTML += `<br/><span class="small-fname">${f.name} - ${f.size / 1000} kB</span>`;
+        projectFiles.push(f);
+    });
 };

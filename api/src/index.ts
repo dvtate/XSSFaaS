@@ -13,8 +13,10 @@ const debug = Debugger('xss:api:server');
 // Set up express server
 import express from 'express';
 import { json } from 'body-parser';
+import cookieParser from 'cookie-parser';
 const app = express();
 app.use(json());
+app.use(cookieParser());
 
 // TODO reassess if these are really needed
 // import cors from 'cors';
@@ -31,10 +33,8 @@ app.use('/', express.static('static'));
 // Endpoints
 import portalRouter from './portal';
 app.use('/api/portal', portalRouter);
-
 import workerRouter from './worker';
 app.use('/api/worker', workerRouter);
-
 import workRouter from './work';
 app.use('/api/work', workRouter);
 

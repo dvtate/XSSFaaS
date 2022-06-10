@@ -76,7 +76,7 @@ export default class WorkerApp {
     /**
      * Authenticate session on router server
      */
-    async authenticate() {
+    private async authenticate() {
         if (!util.getCookie('workerId')) {
             console.log(this);
             await this.newWorkerId();
@@ -156,7 +156,7 @@ export default class WorkerApp {
      * @param t task to cancel
      * @returns true if task was cancelled false if task not in task queue
      */
-    cancelTask(t: Task) {
+    private cancelTask(t: Task) {
         const origLen = this.taskQueue.length;
         this.taskQueue = this.taskQueue.filter(task => task.taskId !== t.taskId);
         return this.taskQueue.length !== origLen;
@@ -165,8 +165,46 @@ export default class WorkerApp {
     /**
      * Tell server we're about to disconnect
      */
-    clearQueue() {
+    private clearQueue() {
         this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
         this.taskQueue = [];
+    }
+
+    /**
+     * Get the number of active threads. If zero then it is safe to close the tabd
+     * @returns number of threads with an active task
+     */
+    activeThreads() {
+        let ret = 0;
+        this.threads.forEach(t => {
+            if (t.activeTask)
+                ret++;
+        });
+        return ret;
+    }
+
+    /**
+     * User wants to close the tab
+     */
+    async prepareExit() {
+        return new Promise(resolve => {
+            // Stop working
+            this.clearQueue();
+            writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
+
+            // Track active threads untill they all close
+            let lastActiveThreads = null;
+            const interval = setInterval(() => {
+                const active = this.activeThreads();
+                if (active === 0) {
+                    writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
+                    clearInterval(interval);
+                } else if (active !== lastActiveThreads) {
+                    writeLog(new Log(Log.Type.S_FATAL, 'There are still ' + active
+                        + ' active threads, please wait a few seconds for them to finish'));
+                    lastActiveThreads = active;
+                }
+            }, 100);
+        });
     }
 };

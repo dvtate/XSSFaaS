@@ -26,6 +26,9 @@ CREATE TABLE Functions (
     about VARCHAR(255) DEFAULT NULL,
     creationTs BIGINT UNSIGNED NOT NULL,
 
+    -- required to invoke the function
+    invokeToken CHAR(32) UNIQUE,
+
     -- Distribution Policy
     --  some use cases want more spread out requests
     --  other use cases it's better to have same worker perform all requests
@@ -85,12 +88,4 @@ CREATE TABLE TaskLogs (
 
     message TEXT NOT NULL,
     ts BIGINT UNSIGNED NOT NULL
-);
-
--- In order to invoke the function an addtional token is required for security
-CREATE TABLE FunctionInvokeKeys (
-    userId BIGINT REFERENCES Users,
-    functionId CHAR(36) REFERENCES Functions,
-    token CHAR(36) UNIQUE NOT NULL,
-    expires DATE DEFAULT NULL
 );

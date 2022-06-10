@@ -10,25 +10,23 @@ export let app = new WorkerApp();
 
 // Prevent user from closing tab
 // https://stackoverflow.com/questions/14746851/execute-javascript-function-before-browser-reloads-closes-browser-exits-page
-window.addEventListener("beforeunload", function (evt) {
+window.onbeforeunload = function (evt) {
     // Cancel the event (if necessary)
     evt.preventDefault();
     // Google Chrome requires returnValue to be set
     evt.returnValue = '';
 
-    // TODO send CLEAR_QUEUE message to router
-    // which eventually tells user when it's ok to close
-    // TODO tell user it's ok to close once last tasks finish
-    app.clearQueue();
-    writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
+    // Mitigate damage
+    app.prepareExit();
+
+    // Stops it
     return null;
-});
+};
 
 
 // Verify logged in
 if (!util.getCookie('authToken'))
     window.location.href = '/portal/login.html';
 
-// TODO Controls
-// - Prepare for disconnect
-// - ?
+// Mitigate damage
+document.getElementById('btn-exit').onclick = () => app.prepareExit();

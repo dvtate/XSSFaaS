@@ -98,7 +98,6 @@ export default class LL<T> {
             n.insertAfter(this);
     }
 
-    // TODO
     *[Symbol.iterator]() {
         let n: LL<T> = this;
         let i = 0;

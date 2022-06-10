@@ -95,7 +95,7 @@ declare global {
 };
 
 export async function requireAuthMiddleware(req: Request, res: Response, next: NextFunction) {
-    const user = await authUserSafe(req.get("Authorization"));
+    const user = await authUserSafe(req.get("Authorization") || req.cookies.authToken);
     if (user.error)
         return res.status(401).send(user.error);
     req.session = user as any;

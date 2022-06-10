@@ -1,6 +1,6 @@
 // Initialize debugger
 import Debugger from 'debug';
-const debug = Debugger('xss:api:worker');
+const debug = Debugger('xss:api:work');
 
 import * as db from './db';
 
@@ -17,14 +17,21 @@ router.post(
         // Get params
         const { functionId } = req.params;
         // const { userId } = req.session;
+        const invokeToken = String(req.query.key);
         const additionalData = JSON.stringify(req.body);
 
-        /// Verify user is authorized to make this request
-        // const fn = await db.queryProm('SELECT userId FROM Functions WHERE functionId=?', [functionId], true);
-        // if (fn instanceof Error)
-        //     return res.status(500).send('db error');
-        // if (fn[0].userId !== userId)
-        //     return res.status(401).send('unauthorized');
+        // Verify they have right invokeToken
+        const fn = await db.queryProm(
+            'SELECT userId FROM Functions WHERE functionId=? AND invokeToken=?',
+            [functionId, invokeToken],
+            true,
+        );
+        if (fn instanceof Error) {
+            console.error(fn);
+            return res.status(500).send('db error');
+        }
+        if (fn.length === 0)
+            return res.status(404).send('no function with given key');
 
         // Add task to database
         await db.queryProm(

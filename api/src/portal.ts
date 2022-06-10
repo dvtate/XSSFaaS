@@ -92,8 +92,8 @@ router.get('/functions/', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
 
     const fns = await db.queryProm(
-        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
-        + 'FROM Functions WHERE userId = ?;',
+        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers'
+        + ' FROM Functions WHERE userId = ?;',
         [String(userId)],
         true,
     );
@@ -109,8 +109,8 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
     const { fnId } = req.params;
 
     const fnq = await db.queryProm(
-        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers '
-        + 'FROM Functions WHERE functionId = ? AND userId = ?;',
+        'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers, invokeToken'
+        + ' FROM Functions WHERE functionId = ? AND userId = ?;',
         [ fnId, String(userId) ],
         true,
     );

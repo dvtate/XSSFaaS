@@ -37,8 +37,8 @@ fnPolReuseInp.onchange = () => fnPolReuseBtn.disabled = false;
 fnPolSpecInp.onchange = () => fnPolSpecBtn.disabled = false;
 
 // Update function data
-fnNameBtn.onclick = () => {
-    updateFunction('name', fnNameInp.value);
+fnNameBtn.onclick = async () => {
+    await updateFunction('name', fnNameInp.value);
     fnNameBtn.disabled = true;
     fetchData(); // Update UI
 };
@@ -59,6 +59,7 @@ fnPolSpecBtn.onclick = () => {
     fnPolSpecBtn.disabled = true;
 };
 
+// Alter function in the database
 async function updateFunction(field: string, value: string) {
     const res = await util.post(
         API_SERVER_URL + '/portal/function/' + functionId + '/alter',
@@ -75,18 +76,28 @@ interface AssetDbEntry {
     modifiedTs?: number;
 };
 
-function fileCard(file: AssetDbEntry) {
+function fileCard(file: AssetDbEntry, functionId: string) {
     return `<div class="ms-card ms-border ms-inline">
         <div class="ms-card-title">
             <h3>${file.fileName}</h3>
             <span>${file.sizeBytes/1000} kB - Uploaded ${new Date(file.creationTs).toISOString()}</span>
         </div>
         <div class="ms-card-content">
-            <button type="button" onclick="alert('not implemented')">Delete</button>
-            <button type="button" onclick="alert('not implemented')">Download</button>
+            <a class="ms-button" href="${API_SERVER_URL}/portal/assets/${functionId}/${file.fileName}">Download</a>
+            <button type="button" onclick="deleteFnAsset(${file.assetId})">Delete</button>
         </div>
     </div>`;
 }
+
+globalThis.deleteFnAsset = async (assetId: number) => {
+    await fetch(API_SERVER_URL + '/portal/asset' + assetId, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${util.getCookie('authToken')}`,
+        },
+    });
+    return fetchData();
+};
 
 const logsBtn = document.getElementById('btn-logs') as HTMLButtonElement;
 
@@ -114,7 +125,8 @@ async function fetchData() {
     fnPolFwsInp.checked = !fnData.allowForeignWorkers
     fnPolReuseInp.checked = !!fnData.preventReuse;
     fnPolSpecInp.value = fnData.optSpec;
-    document.getElementById('proj-files-list').innerHTML = fnData.assets.map(fileCard).join('');
+    document.getElementById('proj-files-list').innerHTML
+        = fnData.assets.map(a => fileCard(a, fnData.functionId)).join('');
     if (logsBtn.innerHTML === 'Show Logs')
         logsBtn.innerHTML = `Show ${Math.min(fnData.logCount, 1000)} logs`;
 }
@@ -140,22 +152,29 @@ filesArea.ondrop = function (ev) {
     ev.preventDefault();
     // ev.stopPropagation();
 
+    // Get files from drop event
+    let files: File[] = [];
     if (ev.dataTransfer.items)
-        for (const item of ev.dataTransfer.items)
-            if (item.kind === 'file') {
-                const f = item.getAsFile();
-                if (f.size > 1000 * 1000 * 20) {
-                    filesArea.innerHTML += `<br/><span class="small-fname invalid">${f.name} is over 20 MB cap</span>`;
-                    continue;
-                }
-
-                filesArea.innerHTML += `<br/><span class="small-fname">${f.name} - ${f.size / 1000} kB</span>`;
-                projectFiles.push(f);
-            }
+        files = [...ev.dataTransfer.items].filter(i => i.kind === 'file').map(f => f.getAsFile());
     else if (ev.dataTransfer.files)
-        projectFiles.push(...ev.dataTransfer.files);
+        files = [...ev.dataTransfer.files];
+    else
+        console.error("wtf no files?", ev.dataTransfer);
 
-    filesBtn.disabled = false;
+    // Process files
+    files.forEach(f => {
+        if (f.size > 1000 * 1000 * 20) {
+            filesArea.innerHTML += `<br/><span class="small-fname invalid">${f.name} is over 20 MB cap</span>`;
+            return;
+        }
+
+        filesArea.innerHTML += `<br/><span class="small-fname">${f.name} - ${f.size / 1000} kB</span>`;
+        projectFiles.push(f);
+    });
+
+    // Enable submit button
+    if (projectFiles.length)
+        filesBtn.disabled = false;
 };
 filesBtn.onclick = async () => {
     const fd = new FormData();
@@ -178,12 +197,13 @@ filesBtn.onclick = async () => {
 };
 
 interface LogDBEntry {
-    type: 'LOG' | 'CRASH';
+    taskId: number;
+    logType: 'LOG' | 'CRASH';
     ts: number;
     message: string;
 }
 
-let logs = []
+let logs: LogDBEntry[] = [];
 
 function showLogs() {
     // TODO use a search box to filter
@@ -213,4 +233,4 @@ document.getElementById('fn-delete').onclick = async () => {
     });
     console.log(r);
     window.location.href = 'index.html';
-}
+};

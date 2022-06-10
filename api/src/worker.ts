@@ -39,8 +39,20 @@ router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
     const { message, type, workerId } = req.body;
     const { userId } = req.session;
 
-    // TODO verify worker has permission to log for this task
-    //      and that task is not already completed
+    // Verify worker has permission to log for this task and that task is not already completed
+    const t = await db.queryProm(
+        'SELECT functionId FROM Tasks T INNER JOIN Workers W ON T.workerId = W.workerId'
+        + ' WHERE T.workerId=? AND taskId=? AND userId=?'
+        + (type === 'CRASH' ? '' : ' AND endTs IS NULL'),
+        [workerId, taskId, userId],
+        false,
+    );
+    if (t instanceof Error) {
+        console.error(t);
+        return res.status(500).send('db error');
+    }
+    if (t.length === 0)
+        return res.status(401).send('unauthorized');
 
     // Write log to server
     await db.queryProm(
