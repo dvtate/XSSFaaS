@@ -51,37 +51,50 @@
         <div class="container">
             <h1>New Function</h1><hr/>
             <form action="javascript:;">
-                <div class="ms-form-group">
-                    <label for="fn-name">Function Name</label>
-                    <input type="text" id="fn-name" required />
-                </div>
-                <div class="ms-form-group">
-                    <label for="fn-about">Function Description</label>
-                    <textarea id="fn-about" rows="3" maxlength="255"></textarea>
-                </div>
-                <div class="ms-form-group">
-                    <label for="fn-pol-fws">Use only workers associated with this account</label>
-                    <input type="checkbox" id="fn-pol-fws" />
-                </div>
-                <div class="ms-form-group">
-                    <label for="fn-pol-reuse">Avoid reusing workers (not recommended)</label>
-                    <input type="checkbox" id="fn-pol-reuse" />
-                </div>
-                <div class="ms-form-group">
-                    <label for="fn-pol-spec">Preferred Worker Specs</label>
-                    <select id="fn-pol-spec">
-                        <option value="BALANCED">Balanced</option>
-                        <option value="CPU">Compute</option>
-                        <option value="NET">Network</option>
-                    </select>
-                </div>
-                <div class="ms-form-group">
-                    <label for="fn-files">Relevant Files</label>
-                    <div id="fn-files">
-                        Drop project files here
+                <fieldset>
+                    <legend>Identification</legend>
+                    <div class="ms-form-group">
+                        <label for="fn-name">Function Name</label>
+                        <input type="text" id="fn-name" required />
                     </div>
-                    <p>Please attach all relevant project files, notably an <kbd>index.js</kbd> file with a function default export.</p><br/>
-                </div>
+                    <div class="ms-form-group">
+                        <label for="fn-about">Function Description</label>
+                        <textarea id="fn-about" rows="3" maxlength="255"></textarea>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Policies</legend>
+                    <div class="ms-form-group">
+                        <label for="fn-pol-fws">Use only workers associated with this account</label>
+                        <input type="checkbox" id="fn-pol-fws" />
+                    </div>
+                    <div class="ms-form-group">
+                        <label for="fn-pol-reuse">Avoid reusing workers (not recommended)</label>
+                        <input type="checkbox" id="fn-pol-reuse" />
+                    </div>
+                    <div class="ms-form-group" hidden>
+                        <label for="fn-pol-spec">Preferred Worker Specs</label>
+                        <select id="fn-pol-spec">
+                            <option value="BALANCED">Balanced</option>
+                            <option value="CPU">Compute</option>
+                            <option value="NET">Network</option>
+                        </select>
+                    </div>
+                    <p>
+                        Geography and ISP filters coming soon.
+                    </p>
+                </fieldset>
+                <fieldset>
+                    <legend>Project Files</legend>
+                    <div class="ms-form-group">
+                        <label for="fn-files">Relevant Files</label>
+                        <div id="fn-files">
+                            Drop project files here
+                        </div>
+                        <p>Please attach all relevant project files, notably an <kbd>index.js</kbd> file with a function default export.</p>
+                    </div>
+                </fieldset>
+                <br/>
                 <button type="submit" class="ms-btn ms-primary ms-medium" id="btn-create">Create Function</button>
                 <span id="failed-text"></span>
             </form>

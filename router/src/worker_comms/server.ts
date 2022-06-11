@@ -87,17 +87,8 @@ export default class WsServer {
 
         // Use ws://
         this.server = new WebSocket.Server({ port });
-	this.server.on('listening', () => debug('ws listening on ' + port));
+        this.server.on('listening', () => debug('ws listening on ' + port));
         this.bindWsListeners();
-    }
-
-    /**
-     * Distribute tasks to workers
-     * @param tasks tasks to distribute
-     * @returns promise
-     */
-    async distribute(...tasks: Task[]) {
-        return Promise.all(tasks.map(this.distributeTask.bind(this)));
     }
 
     /**
@@ -149,10 +140,17 @@ export default class WsServer {
         let workers = this.workers;
         if (!t.allowForeignWorkers)
             workers = workers.filter(w => w.userId === t.userId);
-        if (t.preventReuse)
-            workers = workers.filter(w => w.knownFunctions.has(t.functionId));
+        if (t.preventReuse) {
+            workers = workers.filter(w => !w.knownFunctions.has(t.functionId));
+        } else {
+            // If one of the workers already hosting this function isn't too busy send it more tasks
+            // Else, find another worker
+            const curWorkers = workers.filter(w => w.knownFunctions.has(t.functionId));
+            if (curWorkers.some(w => w.jobsPerProc() < overloadedCutoff))
+                workers = curWorkers;
+        }
 
-        // Don't distribute if not enough workers or workers overloaded
+        // Pick a worker from remaining workers which isn't overloaded
         if (!workers.length) {
             debug('no workers');
             return;
@@ -166,4 +164,12 @@ export default class WsServer {
         worker.doTask(t);
     }
 
+    /**
+     * Distribute tasks to workers
+     * @param tasks tasks to distribute
+     * @returns promise
+     */
+    async distribute(...tasks: Task[]) {
+        return Promise.all(tasks.map(this.distributeTask.bind(this)));
+    }
 }

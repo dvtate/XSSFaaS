@@ -234,7 +234,7 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
 async function deleteFunction(functionId: string) {
     // Queries required to delete the function
     const queries: Array<[string, string[]]> = [
-        ['DELETE FROM TasksLogs WHERE taskId IN (SELECT taskId FROM Tasks WHERE functionId = ?)', [functionId]],
+        ['DELETE FROM TaskLogs WHERE taskId IN (SELECT taskId FROM Tasks WHERE functionId = ?)', [functionId]],
         ['DELETE FROM Tasks WHERE functionId = ?', [functionId]],
         ['DELETE FROM FunctionInvokeKeys WHERE functionId = ?', [functionId]],
         ['DELETE FROM FunctionAssets WHERE functionId=?', [functionId]],
@@ -354,7 +354,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
         return res.status(404).send("you don't have a function with that id");
 
     // Parse limit param
-    let n;
+    let n: string;
     try {
         n = String(limit ? Number(limit) : 1000);
     } catch (e) {
@@ -363,7 +363,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
 
     // Get logs from db
     const logs = await db.queryProm(
-        `SELECT logType, message, ts FROM FunctionLogs WHERE functionId = ? LIMIT ${n}`,
+        `SELECT logType, message, ts FROM FunctionLogs WHERE functionId = ? ORDER BY ts DESC LIMIT ${n}`,
         [functionId],
         true,
     );
@@ -375,6 +375,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
 // TODO
 // User logout
 // Update user
+// User delete
 // User stats
 // Enable/Disable worker (to allow safe shutdown)
 // delete user

@@ -2,7 +2,7 @@
 /**
  * URL to connect to the API server
  */
-export const API_SERVER_URL = 'https://xssaas.com/api';
+export const API_SERVER_URL = '/api';
 
 /**
  * URL to connect to the Router server

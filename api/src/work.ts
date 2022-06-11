@@ -17,7 +17,7 @@ router.post(
         // Get params
         const { functionId } = req.params;
         // const { userId } = req.session;
-        const invokeToken = String(req.query.key);
+        const invokeToken = decodeURIComponent(String(req.query.key));
         const additionalData = JSON.stringify(req.body);
 
         // Verify they have right invokeToken
