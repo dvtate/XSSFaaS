@@ -15,7 +15,6 @@ const fnCallUrl = document.getElementById('url-fxn-call') as HTMLSpanElement; //
 
 // Populate with user provided id
 fnIdSpan.innerHTML = functionId;
-fnCallUrl.innerHTML = API_SERVER_URL + '/work/task/' + functionId;
 
 // Form elements
 const fnNameInp = document.getElementById('fn-name') as HTMLInputElement;
@@ -83,14 +82,14 @@ function fileCard(file: AssetDbEntry, functionId: string) {
             <span>${file.sizeBytes/1000} kB - Uploaded ${new Date(file.creationTs).toISOString()}</span>
         </div>
         <div class="ms-card-content">
-            <a class="ms-button" href="${API_SERVER_URL}/portal/assets/${functionId}/${file.fileName}">Download</a>
+            <a class="ms-btn" href="${API_SERVER_URL}/portal/assets/${functionId}/${file.fileName}">Download</a>
             <button type="button" onclick="deleteFnAsset(${file.assetId})">Delete</button>
         </div>
     </div>`;
 }
 
 globalThis.deleteFnAsset = async (assetId: number) => {
-    await fetch(API_SERVER_URL + '/portal/asset' + assetId, {
+    await fetch(API_SERVER_URL + '/portal/asset/' + assetId, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${util.getCookie('authToken')}`,
@@ -125,6 +124,7 @@ async function fetchData() {
     fnPolFwsInp.checked = !fnData.allowForeignWorkers
     fnPolReuseInp.checked = !!fnData.preventReuse;
     fnPolSpecInp.value = fnData.optSpec;
+    fnCallUrl.innerHTML = `${API_SERVER_URL}/work/task/${functionId}?key=${fnData.invokeToken}`;
     document.getElementById('proj-files-list').innerHTML
         = fnData.assets.map(a => fileCard(a, fnData.functionId)).join('');
     if (logsBtn.innerHTML === 'Show Logs')

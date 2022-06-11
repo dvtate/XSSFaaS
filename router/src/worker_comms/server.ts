@@ -10,7 +10,6 @@ const debug = Debugger('xss:rtr:ws');
 
 import { queryProm } from '../db';
 
-import LL from '../util/ll';
 import Task from '../task';
 import WorkerConnection from './conn';
 
@@ -32,8 +31,6 @@ interface Function {
  * Manages websocket connections with the different connected workers
  */
 export default class WsServer {
-    // TODO new algorithm
-
     /**
      * Workers to distribute tasks to
      */
@@ -84,12 +81,13 @@ export default class WsServer {
             });
             this.server = new WebSocket.Server({ server });
             this.bindWsListeners();
-            server.listen(port, () => debug('https listening on ' + port));
-	    return;
+            server.listen(port, () => debug('wss listening on ' + port));
+            return;
         }
 
         // Use ws://
         this.server = new WebSocket.Server({ port });
+	this.server.on('listening', () => debug('ws listening on ' + port));
         this.bindWsListeners();
     }
 

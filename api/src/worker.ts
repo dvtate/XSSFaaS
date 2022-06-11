@@ -30,7 +30,7 @@ router.post('/enlist', requireAuthMiddleware, async (req, res) => {
         );
 
     res.json(query[1][0].workerId);
-
+    debug('New worker ', userId, query[1][0].workerId);
 });
 
 // Write log for task
@@ -68,6 +68,7 @@ router.get('/asset/:functionId/:fname', async (req, res) => {
 
     // TODO authentication
     // TODO use location stored in database in case remote or something
+    // TODO should prob move all fs logic to dedicated file
     res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`);
 });
 export default router;

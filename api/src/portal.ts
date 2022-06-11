@@ -1,9 +1,12 @@
+// External imports
+import crypto from "crypto";
+import validator from 'validator';
+
 // Initialize debugger
 import Debugger from 'debug';
 const debug = Debugger('xss:api:portal');
 
-import validator from 'validator';
-
+// Internal imports
 import * as db from './db';
 import { generateToken, getPasswordHash, requireAuthMiddleware } from './auth';
 
@@ -162,12 +165,12 @@ router.post('/function', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const { name, about, preventReuse, optSpec, allowForeignWorkers } = req.body;
     const ts = Date.now();
-
+    const token = crypto.randomBytes(24).toString("base64");
     const qr = await db.queryProm(
-        `INSERT INTO Functions (functionid, userId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers)
-        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?);
+        `INSERT INTO Functions (functionid, userId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers, invokeToken)
+        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?);
         SELECT functionId FROM Functions WHERE creationTs = ?;`,
-        [userId, name, about, ts, preventReuse, optSpec, allowForeignWorkers, ts],
+        [userId, name, about, ts, preventReuse, optSpec, allowForeignWorkers, token, ts],
         false,
     );
     if (qr instanceof Error) {
@@ -175,16 +178,7 @@ router.post('/function', requireAuthMiddleware, async (req, res) => {
         return res.status(500).send('db error');
     }
     const { functionId } = qr[1][0];
-    const iq = await db.queryProm(
-        'INSERT INTO FunctionInvokeKeys (userId, functionId, token, expires) '
-        + 'VALUES (?, ?, UUID(), NULL)',
-        [userId, functionId],
-        false,
-    );
-    if (iq instanceof Error) {
-        console.error(iq);
-        return res.status(500).send('db error');
-    }
+    debug('New function ', functionId);
     res.send(functionId);
 });
 
@@ -228,6 +222,8 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
         return res.status(500).send('db error');
     }
     res.status(200).send('ok');
+    debug('Asset deleted');
+    // TODO delete file from disk
 });
 
 
@@ -251,6 +247,7 @@ async function deleteFunction(functionId: string) {
         if (r instanceof Error)
             throw r;
     }
+    debug('Deleted function', functionId);
 }
 
 // Delete function
@@ -273,7 +270,12 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
         return res.status(404).send("You don't own a function with this ID");
     }
 
-    res.status(200).send('ok');
+    deleteFunction(functionId)
+        .then(() => res.status(200).send('ok'))
+        .catch(e => {
+            console.error(e);
+            res.status(500).send('db error');
+        });
 });
 
 // Upload function asset
@@ -322,7 +324,7 @@ router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUpl
             res.status(500).send('failed to upload');
         });
 
-    debug('stored %d files', files.length);
+    debug('Stored %d assets', files.length);
 });
 
 // Access FunctionAsset

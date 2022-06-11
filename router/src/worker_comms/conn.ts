@@ -2,12 +2,11 @@ import * as WebSocket from 'ws';
 import axios from 'axios';
 
 import Debugger from 'debug';
-const debug = Debugger('xss:rtr:ws');
+const debug = Debugger('xss:rtr:worker');
 
 import { queryProm } from '../db';
 import { authUserSafe } from '../auth';
 
-import LL from '../util/ll';
 import WsMessage from './message';
 import Task from '../task';
 import WsServer from './server';

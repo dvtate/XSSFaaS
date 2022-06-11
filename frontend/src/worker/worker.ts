@@ -47,7 +47,7 @@ export default class WorkerApp {
         const nproc = navigator.hardwareConcurrency;
         for (let i = 0; i < nproc; i++)
             this.threads.push(new Thread(this, i));
-        writeLog(new Log(Log.Type.S_INFO, `Spawned ${nproc} worker threads`));
+        return writeLog(new Log(Log.Type.S_INFO, `Spawned ${nproc} worker threads`));
     }
 
     /**
