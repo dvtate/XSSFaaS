@@ -64,7 +64,7 @@ export default class WorkerConnection {
 
         // Heartbeat
         this.socket.on('pong', () => { this.isAlive = true; });
-        this.heartbeat = setInterval(this.heartbeatFunction, 30000);
+        this.heartbeat = setInterval(this.heartbeatFunction.bind(this), 10000);
     }
 
     /**
@@ -75,6 +75,8 @@ export default class WorkerConnection {
             clearInterval(this.heartbeat);
             return this.socket.terminate();
         }
+	if (this.isShuttingDown)
+		debug('sd', [...this.activeTasks.values()].map(t => t.taskId).join());
         if (this.isShuttingDown && this.activeTasks.size === 0) {
             debug('Worker successfully finished all tasks. Disconnecting');
             clearInterval(this.heartbeat);
@@ -107,7 +109,6 @@ export default class WorkerConnection {
                 // Redistribute work to other workers
                 this.server.removeWorker(this);
                 this.server.distribute(...this.taskQueue.values());
-
                 this.isShuttingDown = true;
                 break;
             case WsMessage.Type.AUTH:
@@ -121,10 +122,13 @@ export default class WorkerConnection {
                 break;
             case WsMessage.Type.DS_TASK_START: {
                 const t = this.taskQueue.get(Number(msg.args[0]));
-                this.taskQueue.delete(t.taskId);
-                if (!t)
-                    debug('wtf unexpected task started %s', msg.args[0]);
+                if (!t) {
+                    if (!this.activeTasks.has(Number(msg.args[0])))
+                        debug('wtf unexpected task started %s', msg.args[0]);
+                    break;
+                }
                 this.activeTasks.set(t.taskId, t);
+                this.taskQueue.delete(t.taskId);
                 break;
             }
             default:
@@ -162,6 +166,8 @@ export default class WorkerConnection {
      * Handler for websocket 'close' event
      */
     private onDisconnect() {
+        debug('Worker %d disconnected', this.workerId);
+
         // Disable heartbeat
         clearInterval(this.heartbeat);
 
@@ -246,10 +252,7 @@ export default class WorkerConnection {
     doTask(t: Task) {
         // Send task to worker
         this.socket.send(new WsMessage(WsMessage.Type.DW_NEW_TASK, [String(t.taskId), t.functionId, t.additionalData]).toString());
-        if (this.activeTasks.size < this.threads)
-            this.activeTasks.set(t.taskId, t);
-        else
-            this.taskQueue.set(t.taskId, t);
+        this.taskQueue.set(t.taskId, t);
 
         // Worker caches function
         this.knownFunctions.add(t.functionId);

@@ -152,7 +152,7 @@ export default class WsServer {
 
         // Pick a worker from remaining workers which isn't overloaded
         if (!workers.length) {
-            debug('no workers');
+            // debug('no workers');
             return;
         }
         workers = workers.sort((a, b) => a.jobsPerProc() - b.jobsPerProc());

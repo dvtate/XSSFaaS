@@ -52,7 +52,7 @@ const logQueue: Log[] = [];
  */
 export function writeLog(log: Log) {
     const logView = document.getElementById('log-view');
-    const isScrolled = logView.scrollTop == logView.scrollHeight;
+    const isScrolled = logView.scrollTop >= logView.scrollHeight / 2;
 
     // Update page and log queue
     function writeEntry(log: Log) {

@@ -36,8 +36,8 @@ function startWorking(ev) {
     }
 
     // Hide number input
-    nprocInp.style.display = 'hidden';
-    document.getElementById('lbl-inp-nproc').style.display = 'hidden';
+    nprocInp.remove();
+    document.getElementById('lbl-inp-nproc').remove();
 
     // Prevent/delay user from accidentally closing tab
     app.setExitListener();
@@ -54,9 +54,7 @@ function startWorking(ev) {
  */
 function stopWorking() {
     app.prepareExit(() => window.close());
-    ctlBtn.onclick = () => {};
-    ctlBtn.disabled = true;
-    ctlBtn.innerHTML = 'This tab will close automatically when remaining tasks are completed';
+    ctlBtn.remove();
 }
 
 // Verify logged in

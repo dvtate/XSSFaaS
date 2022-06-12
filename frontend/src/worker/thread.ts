@@ -104,6 +104,7 @@ export default class Thread {
                 break;
             case IPCMessageType.C2H_FAIL:
                 console.error('task failed', m.data.args);
+                this.nextTask(true);
                 writeLog(new Log(Log.Type.W_FAILURE, `Task ${this.activeTask.taskId} failed`, m.data.args));
                 break;
             default:
@@ -126,7 +127,7 @@ export default class Thread {
     /**
      * Called when task completed
      */
-    nextTask() {
+    nextTask(failed = false) {
         // Finish task
         const t = this.activeTask;
         if (t) {
@@ -134,6 +135,10 @@ export default class Thread {
             this.completedTasks.push(t);
             this.activeTask = null;
             writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task ${t.taskId}`));
+            if (failed)
+                this.workerApp.taskFailed(t);
+            else
+                this.workerApp.taskDone(t);
         }
 
         // Move on to next task
