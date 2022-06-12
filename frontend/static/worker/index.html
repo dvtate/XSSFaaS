@@ -83,14 +83,23 @@
                 <div>
                     <fieldset>
                         <legend>Controls</legend>
+                        <label id="lbl-inp-nproc" for="inp-nproc">Number of worker threads:</label>
+                        <input type="number" id="inp-nproc" title="number of worker threads to spwan (best to use number of CPU cores" />
                         <div id="control-view">
-                            <button id="btn-exit">Prepare for Exit</button>
+                            <button id="btn-start-stop">Start</button>
                         </div>
                     </fieldset>
                 </div>
                 <div>
                     <fieldset>
                         <legend>Statistics</legend>
+                        <!--
+                        Statistics to track
+                        - Something like load average
+                        - Utilization rate (time spent working on tasks / total time)
+                        - Average time spent in queue
+                        - Average time processing jobs
+                        -->
                         <div id="stats-view">
                             TODO
                         </div>

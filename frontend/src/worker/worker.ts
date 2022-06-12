@@ -4,6 +4,9 @@ import * as util from '../lib/util';
 import WsMessage from "./message";
 import Thread, { Task } from "./thread";
 
+/**
+ * Handles communication between the server and the worker threads
+ */
 export default class WorkerApp {
     /**
      * Worker id from api server
@@ -30,24 +33,19 @@ export default class WorkerApp {
      */
     taskQueue: Task[] = [];
 
-    constructor() {
+    /**
+     * @param nproc number of worker threads to use
+     */
+    constructor(public nproc: number = navigator.hardwareConcurrency) {
         // Bind listeners to ws
         this.ws.onopen = this.authenticate.bind(this);
         this.ws.onmessage = this.onMessage.bind(this);
         this.ws.onclose = () => writeLog(new Log(Log.Type.S_FATAL, 'Lost connection to the server'));
 
         // Spawn worker threads
-        this.spawnThreads();
-    }
-
-    /**
-     * Spawns webworker threads
-     */
-    private async spawnThreads() {
-        const nproc = navigator.hardwareConcurrency;
-        for (let i = 0; i < nproc; i++)
+        for (let i = 0; i < this.nproc; i++)
             this.threads.push(new Thread(this, i));
-        return writeLog(new Log(Log.Type.S_INFO, `Spawned ${nproc} worker threads`));
+        writeLog(new Log(Log.Type.S_INFO, `Spawned ${this.nproc} worker threads`));
     }
 
     /**
@@ -62,7 +60,7 @@ export default class WorkerApp {
         // Request new workerId from api server
         const workerIdReq = await util.post(
             API_SERVER_URL + '/worker/enlist',
-            { ncores: navigator.hardwareConcurrency, ipInfo },
+            { ncores: this.nproc, ipInfo },
         );
         if (workerIdReq.status !== 200)
             console.error('enlist request failed!', workerIdReq.status);
@@ -124,7 +122,7 @@ export default class WorkerApp {
         // Handle different message types
         switch (m.type) {
             case WsMessage.Type.DW_BAD_AUTH_TOKEN:
-                window.location.href = 'login.html';
+                window.location.href = '/portal/login.html';
                 return;
             case WsMessage.Type.DW_BAD_WORKER_ID:
                 util.setCookie('workerId', '', 0);
@@ -186,19 +184,21 @@ export default class WorkerApp {
     /**
      * User wants to close the tab
      */
-    async prepareExit() {
+    async prepareExit(cb?: Function) {
         return new Promise(resolve => {
             // Stop working
             this.clearQueue();
             writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
 
-            // Track active threads untill they all close
+            // Track active threads untill they all finish
             let lastActiveThreads = null;
             const interval = setInterval(() => {
                 const active = this.activeThreads();
                 if (active === 0) {
                     writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
                     clearInterval(interval);
+                    if (cb)
+                        cb();
                 } else if (active !== lastActiveThreads) {
                     writeLog(new Log(Log.Type.S_FATAL, 'There are still ' + active
                         + ' active threads, please wait a few seconds for them to finish'));
@@ -206,5 +206,25 @@ export default class WorkerApp {
                 }
             }, 100);
         });
+    }
+
+    /**
+     * Prompt user before they close tab, perform damage control
+     */
+    setExitListener() {
+        // Prevent user from closing tab
+        // https://stackoverflow.com/questions/14746851/execute-javascript-function-before-browser-reloads-closes-browser-exits-page
+        window.onbeforeunload = (evt: any) => {
+            // Cancel the event (if necessary)
+            evt.preventDefault();
+            // Google Chrome requires returnValue to be set
+            evt.returnValue = '';
+
+            // Mitigate damage
+            this.prepareExit();
+
+            // Stops it
+            return null;
+        };
     }
 };

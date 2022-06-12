@@ -1,4 +1,3 @@
-import Thread from './thread';
 import * as util from '../lib/util';
 import WorkerApp from './worker';
 import { Log, writeLog } from './logging';
@@ -6,27 +5,64 @@ import { Log, writeLog } from './logging';
 /**
  * Singleton Worker app instance
  */
-export let app = new WorkerApp();
+export let app: WorkerApp;
 
-// Prevent user from closing tab
-// https://stackoverflow.com/questions/14746851/execute-javascript-function-before-browser-reloads-closes-browser-exits-page
-window.onbeforeunload = function (evt) {
-    // Cancel the event (if necessary)
-    evt.preventDefault();
-    // Google Chrome requires returnValue to be set
-    evt.returnValue = '';
 
-    // Mitigate damage
-    app.prepareExit();
+// For now this is the only controls given to the user
+const ctlBtn = document.getElementById('btn-start-stop') as HTMLButtonElement;
+ctlBtn.onclick = startWorking;
 
-    // Stops it
-    return null;
-};
+const nprocInp = document.getElementById('inp-nproc') as HTMLInputElement;
+nprocInp.value = String(navigator.hardwareConcurrency);
 
+/**
+ * Start accepting work from server
+ */
+function startWorking(ev) {
+    ev.preventDefault();
+    // Only runs once
+    if (app)
+        return;
+
+    // Get the user's desired number of worker threads
+    try {
+        const nproc = Number(nprocInp.value);
+        if (nproc > 5 * navigator.hardwareConcurrency)
+            throw '5x overloading cap';
+        app = new WorkerApp(nproc);
+    } catch (e) {
+        console.error(e);
+        nprocInp.style.border = '1px solid red';
+        return;
+    }
+
+    // Hide number input
+    nprocInp.hidden = true;
+    document.getElementById('lbl-inp-nproc').hidden = true;
+
+    // Prevent/delay user from accidentally closing tab
+    app.setExitListener();
+
+    // Update button
+    setTimeout(() => {
+        ctlBtn.onclick = stopWorking;
+        ctlBtn.innerHTML = "Stop";
+    }, 150);
+}
+
+/**
+ * Prepares the tab for exit
+ */
+function stopWorking() {
+    app.prepareExit(() => window.close());
+    ctlBtn.onclick = () => {};
+    ctlBtn.disabled = true;
+    ctlBtn.innerHTML = 'This tab will close automatically when remaining tasks are completed';
+}
 
 // Verify logged in
 if (!util.getCookie('authToken'))
     window.location.href = '/portal/login.html';
 
-// Mitigate damage
-document.getElementById('btn-exit').onclick = () => app.prepareExit();
+// Give user instructions
+writeLog(new Log(Log.Type.S_INFO, 'Press the Start button when ready'));
