@@ -236,7 +236,6 @@ async function deleteFunction(functionId: string) {
     const queries: Array<[string, string[]]> = [
         ['DELETE FROM TaskLogs WHERE taskId IN (SELECT taskId FROM Tasks WHERE functionId = ?)', [functionId]],
         ['DELETE FROM Tasks WHERE functionId = ?', [functionId]],
-        ['DELETE FROM FunctionInvokeKeys WHERE functionId = ?', [functionId]],
         ['DELETE FROM FunctionAssets WHERE functionId=?', [functionId]],
         ['DELETE FROM Functions WHERE functionId = ?', [functionId]],
     ];

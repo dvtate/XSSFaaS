@@ -74,6 +74,7 @@ export default class WsMessage {
                 // Single arg
                 // case WsMessage.Type.DS_TASK_START:
                 case WsMessage.Type.DS_TASK_DONE:
+                case WsMessage.Type.DS_TASK_FAIL:
                 case WsMessage.Type.DW_CANCEL_TASK:
                 case WsMessage.Type.DS_TASK_START:
                     return new WsMessage(t, [rem]);
