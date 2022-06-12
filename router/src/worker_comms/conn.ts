@@ -38,17 +38,20 @@ export default class WorkerConnection {
     ipInfo: IpInfo;
     acceptForeignWork: boolean;
 
-    // TODO these should prob be Map<number, Task>
-    private taskQueue: Task[] = [];
-    private activeTasks: Task[] = [];
+    /**
+     *
+     */
+    private taskQueue = new Map<number, Task>();
+    private activeTasks = new Map<number, Task>();
 
     private isAlive = true;
     private heartbeat: NodeJS.Timer;
+    private isShuttingDown: boolean;
 
     /**
      * These functions should be cached already
      */
-    public knownFunctions: Set<string>;
+    public knownFunctions = new Set<string>();
 
     constructor(
         public server: WsServer,
@@ -61,12 +64,24 @@ export default class WorkerConnection {
 
         // Heartbeat
         this.socket.on('pong', () => { this.isAlive = true; });
-        this.heartbeat = setInterval(() => {
-            if (this.isAlive === false)
-                return this.socket.terminate();
-            this.isAlive = false;
-            this.socket.ping();
-        }, 30000);
+        this.heartbeat = setInterval(this.heartbeatFunction, 30000);
+    }
+
+    /**
+     * This gets run every 30 seconds to verify the worker is still alive
+     */
+    private heartbeatFunction() {
+        if (this.isAlive === false) {
+            clearInterval(this.heartbeat);
+            return this.socket.terminate();
+        }
+        if (this.isShuttingDown && this.activeTasks.size === 0) {
+            debug('Worker successfully finished all tasks. Disconnecting');
+            clearInterval(this.heartbeat);
+            return this.socket.terminate();
+        }
+        this.isAlive = false;
+        this.socket.ping();
     }
 
     /**
@@ -74,7 +89,7 @@ export default class WorkerConnection {
      */
     private onError() {
         // TODO figure out what types of errors we encounter
-        console.error(arguments);
+        debug('err', arguments);
     }
 
     /**
@@ -91,26 +106,27 @@ export default class WorkerConnection {
             case WsMessage.Type.CLEAR_QUEUE:
                 // Redistribute work to other workers
                 this.server.removeWorker(this);
-                this.server.distribute(...this.taskQueue.splice(0));
+                this.server.distribute(...this.taskQueue.values());
 
-                // TODO once worker finishes it's activetasks we should terminate the socket
+                this.isShuttingDown = true;
                 break;
             case WsMessage.Type.AUTH:
                 this.auth(msg.args[0], msg.args[1]);
                 break;
             case WsMessage.Type.DS_TASK_DONE:
-                this.endTask(this.activeTasks.find(t => t.taskId == Number(msg.args[0])));
+                this.endTask(this.activeTasks.get(Number(msg.args[0])));
                 break;
             case WsMessage.Type.DS_TASK_FAIL:
-                this.endTask(this.activeTasks.find(t => t.taskId == Number(msg.args[0])), true);
+                this.endTask(this.activeTasks.get(Number(msg.args[0])), true);
                 break;
-            case WsMessage.Type.DS_TASK_START:
-                if (this.activeTasks[this.activeTasks.length - 1].taskId !== Number(msg.args[0])) {
-                    debug('unexpected task started %d', msg.args[0]);
-                    debug('active:', this.activeTasks.map(t => t.taskId));
-                    debug('taskQueue:', this.taskQueue.map(t => t.taskId));
-                }
+            case WsMessage.Type.DS_TASK_START: {
+                const t = this.taskQueue.get(Number(msg.args[0]));
+                this.taskQueue.delete(t.taskId);
+                if (!t)
+                    debug('wtf unexpected task started %s', msg.args[0]);
+                this.activeTasks.set(t.taskId, t);
                 break;
+            }
             default:
                 debug('recieved invalid message: ', msg);
         }
@@ -120,17 +136,18 @@ export default class WorkerConnection {
         // Invalid taskId??
         if (!t) {
             debug('invalid end task id %d', t.taskId);
-            debug('active:', this.activeTasks.map(t => t.taskId));
-            debug('taskQueue:', this.taskQueue.map(t => t.taskId));
+            // debug('active:', this.activeTasks.map(t => t.taskId));
+            // debug('taskQueue:', this.taskQueue.map(t => t.taskId));
             return;
         }
 
         // Move onto next task
-        this.activeTasks = this.activeTasks.filter(task => task !== t);
-        if (this.taskQueue.length) {
-            const t = this.taskQueue.shift();
+        this.activeTasks.delete(t.taskId);
+        if (this.taskQueue.size) {
+            const t = this.taskQueue.values().next().value;
+            this.taskQueue.delete(t.taskId);
             t.startTs = Date.now();
-            this.activeTasks.push(t);
+            this.activeTasks.set(t.taskId, t);
         }
 
         // Update task tracking info
@@ -146,13 +163,13 @@ export default class WorkerConnection {
      */
     private onDisconnect() {
         // Disable heartbeat
-        clearInterval(this.heartbeat)
+        clearInterval(this.heartbeat);
 
         // Don't accept more tasks
         this.server.removeWorker(this);
 
         // Redistribute tasks still in task queue
-        this.server.distribute(...this.taskQueue);
+        this.server.distribute(...this.taskQueue.values());
         this.socket.terminate();
 
         // Mark Tasks currently being processed as completed
@@ -219,7 +236,7 @@ export default class WorkerConnection {
     }
 
     jobsPerProc() {
-        return this.taskQueue.length / this.threads;
+        return this.taskQueue.size / this.threads;
     }
 
     /**
@@ -229,10 +246,10 @@ export default class WorkerConnection {
     doTask(t: Task) {
         // Send task to worker
         this.socket.send(new WsMessage(WsMessage.Type.DW_NEW_TASK, [String(t.taskId), t.functionId, t.additionalData]).toString());
-        if (this.activeTasks.length < this.threads)
-            this.activeTasks.push(t);
+        if (this.activeTasks.size < this.threads)
+            this.activeTasks.set(t.taskId, t);
         else
-            this.taskQueue.push(t);
+            this.taskQueue.set(t.taskId, t);
 
         // Worker caches function
         this.knownFunctions.add(t.functionId);

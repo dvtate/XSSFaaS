@@ -19,7 +19,6 @@ nprocInp.value = String(navigator.hardwareConcurrency);
  * Start accepting work from server
  */
 function startWorking(ev) {
-    ev.preventDefault();
     // Only runs once
     if (app)
         return;
@@ -37,8 +36,8 @@ function startWorking(ev) {
     }
 
     // Hide number input
-    nprocInp.hidden = true;
-    document.getElementById('lbl-inp-nproc').hidden = true;
+    nprocInp.style.display = 'hidden';
+    document.getElementById('lbl-inp-nproc').style.display = 'hidden';
 
     // Prevent/delay user from accidentally closing tab
     app.setExitListener();

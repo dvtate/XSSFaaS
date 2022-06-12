@@ -40,7 +40,10 @@ export default class WorkerApp {
         // Bind listeners to ws
         this.ws.onopen = this.authenticate.bind(this);
         this.ws.onmessage = this.onMessage.bind(this);
-        this.ws.onclose = () => writeLog(new Log(Log.Type.S_FATAL, 'Lost connection to the server'));
+        this.ws.onclose = () => {
+            writeLog(new Log(Log.Type.S_FATAL, 'Lost connection to the server'));
+            this.taskQueue = [];
+        };
 
         // Spawn worker threads
         for (let i = 0; i < this.nproc; i++)
@@ -161,14 +164,6 @@ export default class WorkerApp {
     }
 
     /**
-     * Tell server we're about to disconnect
-     */
-    private clearQueue() {
-        this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
-        this.taskQueue = [];
-    }
-
-    /**
      * Get the number of active threads. If zero then it is safe to close the tabd
      * @returns number of threads with an active task
      */
@@ -187,7 +182,8 @@ export default class WorkerApp {
     async prepareExit(cb?: Function) {
         return new Promise(resolve => {
             // Stop working
-            this.clearQueue();
+            this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
+            this.taskQueue = [];
             writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
 
             // Track active threads untill they all finish

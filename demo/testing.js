@@ -2,7 +2,10 @@ const axios = require('axios');
 
 function sendTask() {
 	console.log('sent task');
-	axios.post('http://xssaas.com/api/work/task/f493dd96-e3c1-11ec-929f-e250eaa37355', new Date().toUTCString())
+	axios.post(
+		'http://xssaas.com/api/work/task/892ea9d3-e8db-11ec-92e1-e353f8df75ae?key=F%2FRFscw%2BGn%2FWszbw2DLQs7neFLa6XA7v',
+		new Date().toUTCString()
+	)
 	.then(() => setTimeout(sendTask, 100))
 	.catch(console.error);
 }

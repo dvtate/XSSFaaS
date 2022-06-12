@@ -13,7 +13,7 @@ import { queryProm } from '../db';
 import Task from '../task';
 import WorkerConnection from './conn';
 
-interface Function {
+interface DBFunction {
     // // Irrelevant
     // name: string;
     // about: string;
