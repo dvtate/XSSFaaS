@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "lib": ["DOM", "ES2020"],
+        "target": "ES6",
+        "module": "system",
+        "outDir": "./dist"
+    },
+    "include": [
+        "index.ts",
+    ],
+    "exclude": [
+        "node_modules", "dist"
+    ]
+}

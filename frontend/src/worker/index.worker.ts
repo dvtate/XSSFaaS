@@ -36,7 +36,7 @@ onmessage = async function (m: MessageEvent<IPCMessage>) {
 /**
  * A set of utilities for the user
  */
-class HostUtils {
+export class TaskUtils {
     /**
      * @param task Current task being run
      */
@@ -75,5 +75,5 @@ async function getFn(id: string) {
 
 async function doTask(t: Task) {
     const f = await getFn(t.functionId);
-    await f.default(t.additionalData, new HostUtils(t));
+    await f.default(t.additionalData, new TaskUtils(t));
 }
