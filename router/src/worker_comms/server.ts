@@ -137,9 +137,15 @@ export default class WsServer {
         const overloadedCutoff = 10;
 
         // Filter workers based on policy
+
+        // Foreign policy
         let workers = this.workers;
         if (!t.allowForeignWorkers)
             workers = workers.filter(w => w.userId === t.userId);
+        workers = workers.filter(w => w.acceptForeignWork || t.userId === w.userId)
+
+        // Reuse policy
+        // TODO there should be a 3rd option for don't care
         if (t.preventReuse) {
             workers = workers.filter(w => !w.knownFunctions.has(t.functionId));
         } else {

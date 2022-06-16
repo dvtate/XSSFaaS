@@ -142,8 +142,16 @@ export default class Thread {
         }
 
         // Move on to next task
-        if (this.workerApp.taskQueue.length)
-            this.doTask(this.workerApp.taskQueue.shift());
+        if (this.workerApp.taskQueue.length) {
+            const nt = this.workerApp.taskQueue.find(t => this.cachedIds.has(t.functionId));
+            if (nt) {
+                this.workerApp.taskQueue = this.workerApp.taskQueue.filter(t => t !== nt);
+                this.doTask(nt);
+            } else {
+                this.doTask(this.workerApp.taskQueue.shift());
+            }
+        }
+
     }
 
     doTask(t: Task) {

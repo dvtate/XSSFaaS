@@ -2,7 +2,7 @@
     "compilerOptions": {
         "lib": ["DOM", "ES2020"],
         "target": "ES6",
-        "module": "system",
+        "module": "ES2020",
         "outDir": "./dist"
     },
     "include": [

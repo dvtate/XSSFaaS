@@ -14,8 +14,6 @@ import { generateToken, getPasswordHash, requireAuthMiddleware } from './auth';
 import { Router } from 'express';
 const router = Router();
 
-import fileUpload, { UploadedFile } from 'express-fileupload';
-
 // User signup
 router.post('/user/signup', async (req, res) => {
     // Extract relevant fields
@@ -278,6 +276,7 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
 });
 
 // Upload function asset
+import fileUpload, { UploadedFile } from 'express-fileupload';
 const fileUploadMiddleware = fileUpload({
     safeFileNames: true,
     preserveExtension: true,
@@ -330,8 +329,10 @@ router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUpl
 router.get('/assets/:functionId/:fname', requireAuthMiddleware, async (req, res) => {
     const { functionId , fname } = req.params;
     res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`, err => {
+        if (!err)
+            return;
         console.error(err);
-        // TODO fallback to use database
+        // TODO fallback to use database storage location
     });
 });
 
