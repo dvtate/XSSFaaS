@@ -142,7 +142,8 @@ export default class WsServer {
         let workers = this.workers;
         if (!t.allowForeignWorkers)
             workers = workers.filter(w => w.userId === t.userId);
-        workers = workers.filter(w => w.acceptForeignWork || t.userId === w.userId)
+        else
+            workers = workers.filter(w => w.acceptForeignWork || t.userId === w.userId)
 
         // Reuse policy
         // TODO there should be a 3rd option for don't care
