@@ -363,7 +363,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
 
     // Get logs from db
     const logs = await db.queryProm(
-        `SELECT logType, message, ts FROM FunctionLogs WHERE functionId = ? ORDER BY ts DESC LIMIT ${n}`,
+        `SELECT logType, message, ts, L.taskId FROM TaskLogs L INNER JOIN Tasks T ON L.taskId=T.taskId WHERE functionId = ? ORDER BY ts DESC LIMIT ${n}`,
         [functionId],
         true,
     );

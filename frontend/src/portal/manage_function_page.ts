@@ -124,7 +124,7 @@ async function fetchData() {
     fnPolFwsInp.checked = !fnData.allowForeignWorkers
     fnPolReuseInp.checked = !!fnData.preventReuse;
     fnPolSpecInp.value = fnData.optSpec;
-    fnCallUrl.innerHTML = `${API_SERVER_URL}/work/task/${functionId}?key=${encodeURIComponent(fnData.invokeToken)}`;
+    fnCallUrl.innerHTML = `https://xssaas.com${API_SERVER_URL}/work/task/${functionId}?key=${encodeURIComponent(fnData.invokeToken)}`;
     document.getElementById('proj-files-list').innerHTML
         = fnData.assets.map(a => fileCard(a, fnData.functionId)).join('');
     if (logsBtn.innerHTML === 'Show Logs')

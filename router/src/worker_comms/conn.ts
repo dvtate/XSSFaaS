@@ -127,6 +127,7 @@ export default class WorkerConnection {
                         debug('wtf unexpected task started %s', msg.args[0]);
                     break;
                 }
+		t.startTs = Date.now();
                 this.activeTasks.set(t.taskId, t);
                 this.taskQueue.delete(t.taskId);
                 break;
