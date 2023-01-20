@@ -11,6 +11,7 @@ export enum LogType {
     W_FAILURE = 3,      // Job failed
     S_FATAL = 4,        // System crash
 }
+const logTypeStrs = ['Job Success', 'Worker info', 'System Info', 'Job failure', 'System fatal'];
 
 /**
  * Base class for logs
@@ -48,31 +49,40 @@ export class Log {
 const logQueue: Log[] = [];
 
 /**
+ * Where we put the logs, or undefined
+ */
+const logView = globalThis.document
+    && document.getElementById
+    && document.getElementById('xss-log-view');
+
+/**
  * Display log entry to the user
  */
 export function writeLog(log: Log) {
-    const logView = document.getElementById('log-view');
-    const isScrolled = logView.scrollTop >= logView.scrollHeight / 2;
-
     // Update page and log queue
-    function writeEntry(log: Log) {
-        const div = document.createElement('div');
-        div.classList.add('log-entry', 'log-status-' + log.type);
-        div.onclick = () => showLog(log);
-        div.innerText = `${log.date.toISOString()}: ${log.message}`;
-        logView.appendChild(div);
-        if (isScrolled)
-            logView.scrollTop = logView.scrollHeight;
-    }
-    writeEntry(log);
-    logQueue.push(log);
+    if (logView) {
+        const isScrolled = logView.scrollTop >= logView.scrollHeight / 2;
+        function writeEntry(log: Log) {
+            const div = document.createElement('div');
+            div.classList.add('log-entry', 'log-status-' + log.type);
+            div.onclick = () => showLog(log);
+            div.innerText = `${log.date.toISOString()}: ${log.message}`;
+            logView.appendChild(div);
+            if (isScrolled)
+                logView.scrollTop = logView.scrollHeight;
+        }
+        writeEntry(log);
+        logQueue.push(log);
 
-    // Cap at 50k log entries, keep last 10k
-    if (logQueue.length > 50_000) {
-        logQueue.splice(-10_000);
-        logView.innerHTML = '';
-        logQueue.forEach(writeEntry);
-        logView.scrollTop = logView.scrollHeight;
+        // Cap at 50k log entries, keep last 10k
+        if (logQueue.length > 50_000) {
+            logQueue.splice(-10_000);
+            logView.innerHTML = '';
+            logQueue.forEach(writeEntry);
+            logView.scrollTop = logView.scrollHeight;
+        }
+    } else if (globalThis.XSS_LOGGING_ENABLED > log.verbosity) {
+        console.log(log.date.toISOString(), LogType[log.type], log.message)
     }
 }
 
@@ -81,8 +91,6 @@ export function writeLog(log: Log) {
  * @param log log entry
  */
 function showLog(log: Log) {
-    const logTypeStrs = ['Job Success', 'Worker info', 'System Info', 'Job failure', 'System fatal'];
-
     document.getElementById('selection-view').innerHTML = `
     <h2>Log Entry</h2>
     <dl>
