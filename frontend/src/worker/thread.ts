@@ -21,6 +21,20 @@ export class Task {
     ) {
         this.receivedTs = Date.now();
     }
+
+    timeSpentInQueue() {
+        if (!this.startTs)
+            return Date.now() - this.receivedTs;
+        return this.startTs - this.receivedTs;
+    }
+
+    runtime() {
+        if (!this.startTs)
+            return undefined;
+        if (!this.endTs)
+            return Date.now() - this.startTs;
+        return this.endTs - this.startTs;
+    }
 }
 
 /**
@@ -39,8 +53,10 @@ enum IPCMessageType {
     C2H_DEBUG_LOG,          // Task generated debugging logs to be sent back to user
                             // args: Log object
 
-    H2C_WORKERID,           // Set the workerId in the thread
-                            // args: workerId
+    H2C_AUTH,               // Set the workerId and authToken
+                            // args: workerId, authToken
+
+    // TODO message to cancel current task
 }
 
 /**
@@ -67,7 +83,7 @@ export default class Thread {
     /**
      * Completed tasks sent to the worker
      */
-    protected completedTasks: Task[] = [];
+    readonly completedTasks: Task[] = [];
 
     /**
      * Task the worker is currently working on
@@ -109,7 +125,8 @@ export default class Thread {
                 break;
             default:
                 console.error('WTF? invalid message type??', m.data);
-                writeLog(new Log(Log.Type.W_INFO, 'unexpected '))
+                writeLog(new Log(Log.Type.W_INFO, 'unexpected message type: ' + m.data.type));
+                break;
         }
     }
 
@@ -134,7 +151,6 @@ export default class Thread {
             t.endTs = Date.now();
             this.completedTasks.push(t);
             this.activeTask = null;
-            writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${this.index} completed task ${t.taskId}`));
             if (failed)
                 this.workerApp.taskFailed(t);
             else
@@ -170,8 +186,8 @@ export default class Thread {
 
     auth() {
         this.w.postMessage(new IPCMessage(
-            IPCMessage.Type.H2C_WORKERID,
-            this.workerApp.workerId,
+            IPCMessage.Type.H2C_AUTH,
+            [this.workerApp.workerId, this.workerApp.authToken],
         ));
     }
 }

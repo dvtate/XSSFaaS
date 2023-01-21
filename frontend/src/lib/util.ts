@@ -11,13 +11,13 @@ interface HttpResponse {
  * @param body Data to include in the body of the request
  * @returns status + text
  */
-export async function post(url: string, body: any): Promise<HttpResponse> {
+export async function post(url: string, body: any, auth = getCookie('authToken')): Promise<HttpResponse> {
     try {
         const resp = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getCookie('authToken')}`,
+                'Authorization': `Bearer ${auth}`,
             },
             body: JSON.stringify(body),
         });
@@ -36,12 +36,12 @@ export async function post(url: string, body: any): Promise<HttpResponse> {
  * @param url API url to request
  * @returns status + text
  */
-export async function get(url: string): Promise<HttpResponse> {
+export async function get(url: string, auth = getCookie('authToken')): Promise<HttpResponse> {
     try {
         const resp = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${getCookie('authToken')}`,
+                'Authorization': `Bearer ${auth}`,
             },
         });
 

@@ -11,17 +11,12 @@ export default class WorkerApp {
     /**
      * Worker id from api server
      */
-    workerId: number;
-
-    /**
-     * Authentication token for user
-     */
-    authToken = util.getCookie('authToken');
+    workerId?: number;
 
     /**
      * WebSocket connection
      */
-    ws = new WebSocket(ROUTER_WS_URL);
+    ws: WebSocket;
 
     /**
      * Worker threads performing tasks
@@ -34,16 +29,23 @@ export default class WorkerApp {
     taskQueue: Task[] = [];
 
     /**
-     * @param nproc number of worker threads to use
+     * Used to prevent screen from falling asleep
      */
-    constructor(public nproc: number = navigator.hardwareConcurrency) {
-        // Bind listeners to ws
+    protected wakeLock: any = null;
+
+    /**
+     * @param nproc number of worker threads to use
+     * @param authToken Authentication token for user
+     */
+    constructor(
+        public nproc: number = navigator.hardwareConcurrency - 1,
+        public authToken = util.getCookie('authToken'),
+    ) {
+        // Connect to router server via websockets
+        this.ws = new WebSocket(ROUTER_WS_URL);
         this.ws.onopen = this.authenticate.bind(this);
         this.ws.onmessage = this.onMessage.bind(this);
-        this.ws.onclose = () => {
-            writeLog(new Log(Log.Type.S_FATAL, 'Lost connection to the server'));
-            this.taskQueue = [];
-        };
+        this.ws.onclose = this.onClose.bind(this);
 
         // Spawn worker threads
         for (let i = 0; i < this.nproc; i++)
@@ -51,51 +53,18 @@ export default class WorkerApp {
         writeLog(new Log(Log.Type.S_INFO, `Spawned ${this.nproc} worker threads`));
     }
 
-    /**
-     * Get a new worker id from api server
-     */
-    private async newWorkerId() {
-        // Get some data which is important
-        const ipInfo = ENABLE_GEO_FEATURE
-            ? null // await fetch('https://ipinfo.io', { headers: { Accepts : 'application/json' }}).then(r => r.json())
-            : null;
-
-        // Request new workerId from api server
-        const workerIdReq = await util.post(
-            API_SERVER_URL + '/worker/enlist',
-            { ncores: this.nproc, ipInfo },
-        );
-        if (workerIdReq.status !== 200)
-            console.error('enlist request failed!', workerIdReq.status);
-
-        // Store workerId
-        this.workerId = Number(workerIdReq.text);
-        writeLog(new Log(Log.Type.S_INFO, 'Connected to API server as worker ' + this.workerId));
-        util.setCookie('workerId', workerIdReq.text, Infinity);
-    }
-
-    /**
-     * Authenticate session on router server
-     */
-    private async authenticate() {
-        if (!util.getCookie('workerId')) {
-            console.log(this);
-            await this.newWorkerId();
-        }
-        this.ws.send(new WsMessage(WsMessage.Type.AUTH, [this.authToken, String(this.workerId)]).toString());
-        writeLog(new Log(Log.Type.S_INFO, 'Sent authentication request to router'));
-        this.threads.forEach(t => t.auth());
-    }
-
     // Task tracking messages
-    taskStarted(t: Task) {
-        return this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_START, [String(t.taskId)]).toString());
+    taskStarted(t: Task, threadIndex?: number) {
+        this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_START, [String(t.taskId)]).toString());
+        writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${threadIndex !== undefined ? ' '+threadIndex : '' } started task ${t.taskId}`));
     }
-    taskDone(t: Task) {
-        return this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_DONE, [String(t.taskId)]).toString());
+    taskDone(t: Task, threadIndex?: number) {
+        this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_DONE, [String(t.taskId)]).toString());
+        writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${threadIndex !== undefined ? ' '+threadIndex : '' } completed task ${t.taskId}`));
     }
-    taskFailed(t: Task) {
-        return this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_FAIL, [String(t.taskId)]).toString());
+    taskFailed(t: Task, threadIndex?: number) {
+        this.ws.send(new WsMessage(WsMessage.Type.DS_TASK_FAIL, [String(t.taskId)]).toString());
+        writeLog(new Log(Log.Type.W_SUCCESS, `Thread ${threadIndex !== undefined ? ' '+threadIndex : '' } failed task ${t.taskId}`));
     }
 
     /**
@@ -114,6 +83,41 @@ export default class WorkerApp {
     }
 
     /**
+     * Get a new worker id from api server
+     */
+    private async newWorkerId() {
+        // Get some data which is important
+        const ipInfo = ENABLE_GEO_FEATURE
+            ? null // await fetch('https://ipinfo.io', { headers: { Accepts : 'application/json' }}).then(r => r.json())
+            : null;
+
+        // Request new workerId from api server
+        const workerIdReq = await util.post(
+            API_SERVER_URL + '/worker/enlist',
+            { ncores: this.nproc, ipInfo },
+            this.authToken,
+        );
+        if (workerIdReq.status !== 200)
+            console.error('enlist request failed!', workerIdReq.status);
+
+        // Store workerId
+        this.workerId = Number(workerIdReq.text);
+        writeLog(new Log(Log.Type.S_INFO, 'Connected to API server as worker ' + this.workerId));
+    }
+
+    /**
+     * Authenticate session on router server
+     */
+    private async authenticate() {
+        if (this.workerId === undefined) {
+            await this.newWorkerId();
+        }
+        this.ws.send(new WsMessage(WsMessage.Type.AUTH, [this.authToken, String(this.workerId)]).toString());
+        writeLog(new Log(Log.Type.S_INFO, 'Sent authentication request to router'));
+        this.threads.forEach(t => t.auth());
+    }
+
+    /**
      * WebSocket onmessage handler
      */
     async onMessage(ev: MessageEvent) {
@@ -128,7 +132,7 @@ export default class WorkerApp {
                 window.location.href = '/portal/login.html';
                 return;
             case WsMessage.Type.DW_BAD_WORKER_ID:
-                util.setCookie('workerId', '', 0);
+                this.workerId = undefined;
                 writeLog(new Log(Log.Type.S_INFO, 'Requesting new worker id'));
                 await this.authenticate();
                 break;
@@ -146,10 +150,21 @@ export default class WorkerApp {
                 this.taskQueue = [];
                 break;
             case WsMessage.Type.AUTH:
-                writeLog(new Log(Log.Type.S_INFO, 'Successfully authenticated with the router'));
+                writeLog(new Log(Log.Type.S_INFO, 'Successfully authenticated with the router.'));
+                writeLog(new Log(Log.Type.S_INFO, 'Waiting for tasks.'));
                 break;
         }
 
+    }
+
+    /**
+     * Websocket onclose listener
+     */
+    private onClose() {
+        writeLog(new Log(Log.Type.S_FATAL, 'Lost connection to the server'));
+        this.taskQueue = [];
+
+        // TODO try to reconnect
     }
 
     /**
@@ -164,7 +179,7 @@ export default class WorkerApp {
     }
 
     /**
-     * Get the number of active threads. If zero then it is safe to close the tabd
+     * Get the number of active threads. If zero then it is safe to close the tab
      * @returns number of threads with an active task
      */
     activeThreads() {
@@ -179,29 +194,27 @@ export default class WorkerApp {
     /**
      * User wants to close the tab
      */
-    async prepareExit(cb?: Function) {
-        return new Promise(resolve => {
-            // Stop working
-            this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
-            this.taskQueue = [];
-            writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
+    async prepareExit(cb?: Function): Promise<void> {
+        // Stop working
+        this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
+        this.taskQueue = [];
+        writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
 
-            // Track active threads untill they all finish
-            let lastActiveThreads = null;
-            const interval = setInterval(() => {
-                const active = this.activeThreads();
-                if (active === 0) {
-                    writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
-                    clearInterval(interval);
-                    if (cb)
-                        cb();
-                } else if (active !== lastActiveThreads) {
-                    writeLog(new Log(Log.Type.S_FATAL, 'There are still ' + active
-                        + ' active threads, please wait a few seconds for them to finish'));
-                    lastActiveThreads = active;
-                }
-            }, 100);
-        });
+        // Track active threads untill they all finish
+        let lastActiveThreads = null;
+        const interval = setInterval(() => {
+            const active = this.activeThreads();
+            if (active === 0) {
+                writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
+                clearInterval(interval);
+                if (cb)
+                    cb();
+            } else if (active !== lastActiveThreads) {
+                writeLog(new Log(Log.Type.S_FATAL, 'There are still ' + active
+                    + ' active threads, please wait a few seconds for them to finish'));
+                lastActiveThreads = active;
+            }
+        }, 100);
     }
 
     /**
@@ -222,5 +235,42 @@ export default class WorkerApp {
             // Stops it
             return null;
         };
+    }
+
+    /**
+     * Prevent screen from falling asleep
+     * @returns {WakeLockSentinel} - this.wakeLock
+     */
+    async aquireWakelock(): Promise<any> {
+        // Experimental web api may not exist!
+        if (!navigator['wakeLock'])
+            return false;
+
+        try {
+            // @ts-ignore this is still an experimental web api
+            return this.wakeLock = await navigator.wakeLock.request('screen');
+        } catch (e) {
+            // Example: low battery
+            console.error('unable to aquire wakelock:', e);
+            return false;
+        }
+    }
+
+    async releaseWakeLock(): Promise<undefined> {
+        // Can't release if not already aquired
+        if (!this.wakeLock)
+            return;
+
+        const ret = this.wakeLock.release();
+        this.wakeLock = null;
+        return ret;
+    }
+
+    activeTasks() {
+        return this.threads.map(t => t.activeTask).filter(Boolean);
+    }
+
+    completedTasks() {
+        return [].concat(...this.threads.map(t => t.completedTasks));
     }
 };

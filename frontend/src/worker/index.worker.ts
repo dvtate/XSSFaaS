@@ -13,6 +13,9 @@ self.Worker = function Worker() {
 // Worker ID this thread is associated with
 let workerId: number;
 
+// Authentication token
+let authToken: string;
+
 // Handle communication between host
 onmessage = async function (m: MessageEvent<IPCMessage>) {
     switch(m.data.type) {
@@ -23,9 +26,9 @@ onmessage = async function (m: MessageEvent<IPCMessage>) {
                 .catch(e => postMessage(new IPCMessage(IPCMessage.Type.C2H_FAIL, e)));
             break;
 
-        // Update workerId
-        case IPCMessage.Type.H2C_WORKERID:
-            workerId = m.data.args;
+        // Update workerId and authToken
+        case IPCMessage.Type.H2C_AUTH:
+            [workerId, authToken] = m.data.args;
             break;
 
         default:
@@ -47,10 +50,10 @@ export class TaskUtils {
      * @param message Message to write
      */
     async log(message: string) {
-        // TODO use {api}/worker/log/:taskId endpoint
         const ret = post(
             `${API_SERVER_URL}/worker/log/${this.task.taskId}`,
             { workerId, message, type: 'LOG' },
+            authToken,
         );
         console.log(`[wt][${this.task.taskId}]`, message);
         return ret;
