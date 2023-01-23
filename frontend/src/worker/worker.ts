@@ -207,6 +207,7 @@ export default class WorkerApp {
             if (active === 0) {
                 writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
                 clearInterval(interval);
+                this.releaseWakeLock();
                 if (cb)
                     cb();
             } else if (active !== lastActiveThreads) {
@@ -214,7 +215,7 @@ export default class WorkerApp {
                     + ' active threads, please wait a few seconds for them to finish'));
                 lastActiveThreads = active;
             }
-        }, 100);
+        }, 200);
     }
 
     /**
@@ -271,6 +272,6 @@ export default class WorkerApp {
     }
 
     completedTasks() {
-        return [].concat(...this.threads.map(t => t.completedTasks));
+        return [].concat(...this.threads.map(t => t.completedTasks)) as Task[];
     }
 };
