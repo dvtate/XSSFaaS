@@ -1,4 +1,4 @@
-import { TaskUtils } from '../frontend/src/worker/index.worker';
+import type { TaskUtils } from '../frontend/src/worker/index.worker';
 
 /**
  * The worker will call this default export when compiled to index.js

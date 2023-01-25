@@ -33,6 +33,7 @@ function main() {
     // Set the number of webworker threads
     if (getParams['n']) {
         const n = getParams['n'];
+        console.log(n);
         const nn = Number(n);
         if (n[0] === '+')
             nprocInp.value = String(navigator.hardwareConcurrency + Number(n.slice(1)));

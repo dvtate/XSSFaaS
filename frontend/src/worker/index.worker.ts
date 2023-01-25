@@ -5,7 +5,7 @@ import { Task, IPCMessage } from './thread';
 import { post } from '../lib/util';
 
 // Prevent Tasks from spawning additional workers
-const Worker_copy = self.Worker;
+// const Worker_copy = self.Worker;
 self.Worker = function Worker() {
     throw new Error('Cannot spawn additional web workers');
 } as any;
@@ -16,7 +16,7 @@ let workerId: number;
 // Authentication token
 let authToken: string;
 
-// Handle communication between host
+// Handle communications from the host
 onmessage = async function (m: MessageEvent<IPCMessage>) {
     switch(m.data.type) {
         // Do task
@@ -31,6 +31,11 @@ onmessage = async function (m: MessageEvent<IPCMessage>) {
             [workerId, authToken] = m.data.args;
             break;
 
+        // Call the users atexit handler
+        case IPCMessage.Type.H2C_KILL:
+            taskUtilsObject.atexit();
+            break;
+
         default:
             console.error('invalid message', m);
     }
@@ -40,6 +45,13 @@ onmessage = async function (m: MessageEvent<IPCMessage>) {
  * A set of utilities for the user
  */
 export class TaskUtils {
+    /**
+     * This gets called right before the user closes the tab
+     */
+    atexit: CallableFunction = function () {
+        this.log('no atexit handler provided, change the value of the `atexit` property of your TaskUtils object');
+    };
+
     /**
      * @param task Current task being run
      */
@@ -55,7 +67,7 @@ export class TaskUtils {
             { workerId, message, type: 'LOG' },
             authToken,
         );
-        console.log(`[wt][${this.task.taskId}]`, message);
+        console.log(`[wt][${this.task.taskId}]:`, message);
         return ret;
     }
 
@@ -76,7 +88,9 @@ async function getFn(id: string) {
         ));
 }
 
+let taskUtilsObject: TaskUtils;
 async function doTask(t: Task) {
-    const f = await getFn(t.functionId);
-    await f.default(t.additionalData, new TaskUtils(t));
+    const m = await getFn(t.functionId);
+    taskUtilsObject = new TaskUtils(t);
+    await m.default(t.additionalData, taskUtilsObject);
 }

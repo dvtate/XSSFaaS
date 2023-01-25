@@ -196,8 +196,10 @@ export default class WorkerApp {
      */
     async prepareExit(cb?: Function): Promise<void> {
         // Stop working
+        this.threads.forEach(t => t.kill());
         this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
         this.taskQueue = [];
+        writeLog(new Log(Log.Type.S_INFO, 'Calling task atexit handlers'));
         writeLog(new Log(Log.Type.S_INFO, 'Sending CLEAR_QUEUE to server so that worker can shutdown'));
 
         // Track active threads untill they all finish

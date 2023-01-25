@@ -28,7 +28,7 @@
                 <label for="ms-menu-toggle" class="ms-menu-icon"><i class="fa fa-bars"></i></label>
                 <ul>
                     <li><a href="">Home</a></li>
-                    <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Docs</a></li>
+                    <li><a href="https://github.com/dvtate/XSSFaaS/wiki">Docs</a></li>
                     <li><a id="nav-link-portal" href="portal/">Portal</a></li>
                     <li><a onclick="return false"><i class="fas fa-sun" id="theme-toggle"></i></a></li>
                 </ul>
@@ -36,13 +36,26 @@
         </div>
 
         <div class="container">
-            <h1>XSSaaS</h1>
+            <h1>XSS FaaS</h1>
             <h2>Distributed, serverless cloud that's actually just a bunch of browser tabs</h2>
-            <p>Yet another serverless <a href="https://en.wikipedia.org/wiki/Function_as_a_service" target="_blank">FaaS</a>
-                platform except this one runs your functions in random people's browsers.
+            <p>Yet another serverless <a href="https://en.wikipedia.org/wiki/Function_as_a_service" target="_blank">function as a service platform</a>
+                except this one runs your functions in random browsers.
                 Or alternatively you could self-host and use, for example, your own computer lab.</p>
 
             <!-- Should probably address Security and Stability as these are kinda spooky -->
+
+            <h2>How to use it?</h2>
+            <p>Read <a href="https://github.com/dvtate/XSSFaaS/wiki" target="_blank">the wiki</a>!</p>
+            <h2>Selfhosting?</h2>
+            <p>The project is open-source and designed to be easy to self-host. See the project <a href="https://github.com/dvtate/xssfaas" target="_blank">GitHub</a>.</p>
+
+            <h2>Relevant technologies</h2>
+            <p>Some recent web technologies really make this concept more desireable notably the following:</p>
+            <ul>
+                <li><a>WebRTC for inter-process communication</a></li> <!-- working on library for this -->
+                <li>WebAssembly to deploy code from compiled languages and maximize performance</li>
+                <li>WebSockets for communication with a host server</li>
+            </ul>
 
             <h2>Technology In Use</h2>
             <p>XSSaaS uses modern web technology in order to maximize performance and ease of use while
@@ -52,10 +65,8 @@
                 <li>WebSockets</li>
                 <li>HTML + TypeScript + Webpack (no frameworks)</li>
             </ul>
-            <h2>Stack</h2>
-            <p>In order to leverage the platform you may find some recent web technologies useful.
-                For example, WebAssembly - in order to get optimal performance or use pre-existing code
-                and WebRTC - for communication between workers. </p>
+
+            <!--
             <h2>How it works</h2>
             <p>This looks like a lot but really it's not.</p>
             <ul>
@@ -67,7 +78,7 @@
 
             <p>Simply upload a javascript file with a default export that's callable and any other relevant project files,
                 specify any relevant policies for it. Open a worker tab (or rely on others to generously donate their resources).
-            </p>
+            </p> -->
         </div>
 
         <footer class="ms-footer">

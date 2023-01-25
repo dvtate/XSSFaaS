@@ -56,6 +56,10 @@ enum IPCMessageType {
     H2C_AUTH,               // Set the workerId and authToken
                             // args: workerId, authToken
 
+    // TODO also need to log when kill signal received
+    H2C_KILL,               // Warns task that connection is about to drop
+                            // args none
+
     // TODO message to cancel current task
 }
 
@@ -78,7 +82,7 @@ export default class Thread {
     /**
      * Web Worker thread
      */
-    w = new Worker('index.worker.bundle.js');
+    protected w = new Worker('index.worker.bundle.js');
 
     /**
      * Completed tasks sent to the worker
@@ -189,5 +193,9 @@ export default class Thread {
             IPCMessage.Type.H2C_AUTH,
             [this.workerApp.workerId, this.workerApp.authToken],
         ));
+    }
+
+    kill() {
+        this.w.postMessage(new IPCMessage(IPCMessage.Type.H2C_KILL));
     }
 }
