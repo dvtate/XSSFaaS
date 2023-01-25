@@ -33,7 +33,6 @@ function main() {
     // Set the number of webworker threads
     if (getParams['n']) {
         const n = getParams['n'];
-        console.log(n);
         const nn = Number(n);
         if (n[0] === '+')
             nprocInp.value = String(navigator.hardwareConcurrency + Number(n.slice(1)));
@@ -43,7 +42,7 @@ function main() {
             writeLog(new Log(Log.Type.S_FATAL, `Invalid number of processors n = ${n
                 } setting to hardware recommended`));
         } else if (nn < 0) {
-            const n = navigator.hardwareConcurrency - nn;
+            const n = navigator.hardwareConcurrency + nn;
             if (n > 0)
                 nprocInp.value = String(n);
             if (n <= 0) {
