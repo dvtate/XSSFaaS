@@ -26,7 +26,7 @@ function msToString(ms: number): string {
         , mins = Math.floor(ms_mins) % 60
         , secs = Math.floor(((ms / 1000) % 60))
         , msecs = ('' + (ms % 1000) / 1000).slice(1)
-        , sigfig2 = (n: number) => ('0' + n).substring(-2);
+        , sigfig2 = (n: number) => ('0' + n).slice(-2);
     return `${hrs}:${sigfig2(mins)}:${sigfig2(secs)}${msecs
         }${days > 0 ? ` and ${days.toLocaleString()} days` : ''}`;
 };

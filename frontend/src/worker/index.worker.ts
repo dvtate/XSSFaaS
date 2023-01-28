@@ -33,7 +33,8 @@ onmessage = async function (m: MessageEvent<IPCMessage>) {
 
         // Call the users atexit handler
         case IPCMessage.Type.H2C_KILL:
-            taskUtilsObject.atexit();
+            if (taskUtilsObject)
+                taskUtilsObject.atexit();
             break;
 
         default:
@@ -55,7 +56,9 @@ export class TaskUtils {
     /**
      * @param task Current task being run
      */
-    constructor(public task: Task) {}
+    constructor(public task: Task) {
+    	console.log(this);
+    }
 
     /**
      * Write a log which you can view in the function's manage page from the portal
@@ -88,9 +91,11 @@ async function getFn(id: string) {
         ));
 }
 
-let taskUtilsObject: TaskUtils;
+let taskUtilsObject: TaskUtils = null;
 async function doTask(t: Task) {
+	console.log('dotask: ', t);
     const m = await getFn(t.functionId);
     taskUtilsObject = new TaskUtils(t);
     await m.default(t.additionalData, taskUtilsObject);
+    taskUtilsObject = null;
 }

@@ -56,7 +56,7 @@ router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
 
     // Write log to server
     await db.queryProm(
-        'INSERT INTO TaskLogs (taskId, logType, message, ts) VALUES (?, ?, ?, ?, ?);',
+        'INSERT INTO TaskLogs (taskId, logType, message, ts) VALUES (?, ?, ?, ?);',
         [taskId, type, message, Date.now()],
         false,
     );

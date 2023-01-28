@@ -20,15 +20,10 @@ export default class Task {
     public failed: boolean = false;
 
     /**
-     * Relevant data passed to the worker
-     */
-    public readonly additionalData: string;
-
-    /**
      * @param taskId id for this task
      * @param functionId id of the function which performs this task
      * @param userId id for user who submitted the task
-     * @param additionalData arguments to the relevant function
+     * @param additionalData relevant data to pass to the function
      * @param arriveTs Time at which the task was received
      * @param allowForeignWorkers can this task be performed by workers not managed by userId?
      * @param preventReuse should this task be spread to as many workers as possible
@@ -37,12 +32,12 @@ export default class Task {
         public readonly taskId: number,
         public readonly functionId: string,
         public readonly userId: number,
-        additionalData: any,
+        public readonly additionalData: string,
         public readonly arriveTs = Date.now(),
         public allowForeignWorkers = true,
         public preventReuse = false,
     ) {
-        this.additionalData = JSON.stringify(additionalData);
+        this.additionalData = additionalData;
     }
 
     /**

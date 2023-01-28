@@ -7,18 +7,19 @@ import * as db from './db';
 import { Router } from 'express';
 const router = Router();
 
+import { text } from 'body-parser';
 import { requireAuthMiddleware } from './auth';
-
 // TODO require auth
 router.post(
     '/task/:functionId',
-    // requireAuthMiddleware,
+    text({type: '*/*'}),
+    // requireAuthMiddleware, 
     async (req, res) => {
         // Get params
         const { functionId } = req.params;
         // const { userId } = req.session;
         const invokeToken = decodeURIComponent(String(req.query.key));
-        const additionalData = JSON.stringify(req.body);
+        const additionalData = req.body;
 
         // Verify they have right invokeToken
         const fn = await db.queryProm(
