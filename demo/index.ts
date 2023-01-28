@@ -1,6 +1,7 @@
 import type { TaskUtils } from '../frontend/src/worker/index.worker';
 
-const sleep = async ms => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = async (ms: number) =>
+    new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * The worker will call this default export when compiled to index.js
@@ -29,8 +30,10 @@ export default async function (additionalData: string, utils: TaskUtils) {
     const timeSpentInQueue = (utils.task.startTs - utils.task.receivedTs) / 1000;
 
     // Write a log which can be viewed from the function portal
-    utils.log(`After ${timeSpentInQueue} seconds, ${args.user}, says:
+    utils.log(`After ${timeSpentInQueue} seconds in queue, ${args.user}, says:
         Hello from ${loc}! Thanks to worker #${utils.workerId}.`);
+
+    await sleep(1000)
 
     // Spawn another one lol
     await fetch('https://xss.software/api/work/task/f7b894dd-9c64-11ed-8ec7-f0def1cd1d63?key=' + args.key, {
@@ -41,5 +44,4 @@ export default async function (additionalData: string, utils: TaskUtils) {
         }),
     });
 
-    await sleep(1000)
 }

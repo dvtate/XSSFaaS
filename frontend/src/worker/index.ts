@@ -25,10 +25,8 @@ function main() {
     // Authorization via url
     if (getParams['authToken'])
         util.setCookie('authToken', getParams['authToken'], 1000 * 60 * 60);
-    else if (!util.getCookie('authToken')) {
-        console.warn(util.getCookie('authToken'));
+    else if (!util.getCookie('authToken'))
         window.location.href = '/portal/login.html';
-    }
 
     // Set the number of webworker threads
     if (getParams['n']) {
@@ -74,7 +72,7 @@ function startWorking() {
     // Get the user's desired number of worker threads
     const nproc = Number(nprocInp.value);
     if (nproc > 5 * navigator.hardwareConcurrency || nproc === 0) {
-        console.log('number of workers must be at least 1 and less than 5x the hardware concurrency available');
+        console.info('number of workers must be at least 1 and less than 5x the hardware concurrency available');
         nprocInp.style.border = '1px solid red';
         return;
     }

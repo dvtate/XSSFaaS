@@ -209,6 +209,7 @@ export default class WorkerApp {
             if (active === 0) {
                 writeLog(new Log(Log.Type.S_FATAL, 'All tasks completed successfully, you may now exit the tab'));
                 clearInterval(interval);
+                this.unsetExitListener();
                 this.releaseWakeLock();
                 if (cb)
                     cb();
@@ -238,6 +239,13 @@ export default class WorkerApp {
             // Stops it
             return null;
         };
+    }
+
+    /**
+     * Remove the exit listener set by setExitListener
+     */
+    unsetExitListener() {
+        window.onbeforeunload = () => window.close();
     }
 
     /**

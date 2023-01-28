@@ -91,3 +91,7 @@ async function makeLists() {
     });
 }
 makeLists();
+
+// Update worker page link to include authToken
+document.getElementById('worker-page-link')
+    .setAttribute('href', `../worker/?authToken=${util.getCookie('authToken')}&n=x1`);

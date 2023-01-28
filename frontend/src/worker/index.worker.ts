@@ -56,9 +56,7 @@ export class TaskUtils {
     /**
      * @param task Current task being run
      */
-    constructor(public task: Task) {
-    	console.log(this);
-    }
+    constructor(public task: Task) {}
 
     /**
      * Write a log which you can view in the function's manage page from the portal
@@ -93,7 +91,6 @@ async function getFn(id: string) {
 
 let taskUtilsObject: TaskUtils = null;
 async function doTask(t: Task) {
-	console.log('dotask: ', t);
     const m = await getFn(t.functionId);
     taskUtilsObject = new TaskUtils(t);
     await m.default(t.additionalData, taskUtilsObject);
