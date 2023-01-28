@@ -1,5 +1,7 @@
 import type { TaskUtils } from '../frontend/src/worker/index.worker';
 
+const sleep = async ms => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * The worker will call this default export when compiled to index.js
  * @param additionalData data that the caller passes
@@ -7,19 +9,37 @@ import type { TaskUtils } from '../frontend/src/worker/index.worker';
  */
 export default async function (additionalData: string, utils: TaskUtils) {
     // Get some IP info data about the worker
-    const req = await fetch('https://ipinfo.io/', {
-        headers: { Accepts : 'application/json' },
-    });
-    const ipInfo = await req.json();
-    const loc = ipInfo.city || ipInfo.region || 'the internet';
+    // Some adblockers block this (as they should)
+    //    don't fail if they do
+    let loc = 'the internet';
+    try {
+        const req = await fetch('https://ipinfo.io/json', {
+            headers: { Accepts : 'application/json' },
+        });
+        const ipInfo = await req.json();
+        loc = ipInfo.city || ipInfo.region || loc;
+    } catch (e) {
+        utils.log(`ERROR: ${e.message}\n${e.stack}`);
+    }
 
     // Lets assume the caller passes something like this: '{"user":"Jerry"}'
     const args = JSON.parse(additionalData);
 
     // We can do some statistics about
-    const timeSpentInQueue = Math.floor((utils.task.startTs - utils.task.receivedTs) / 1000);
+    const timeSpentInQueue = (utils.task.startTs - utils.task.receivedTs) / 1000;
 
     // Write a log which can be viewed from the function portal
     utils.log(`After ${timeSpentInQueue} seconds, ${args.user}, says:
         Hello from ${loc}! Thanks to worker #${utils.workerId}.`);
+
+    // Spawn another one lol
+    await fetch('https://xss.software/api/work/task/f7b894dd-9c64-11ed-8ec7-f0def1cd1d63?key=' + args.key, {
+        method: 'POST',
+        body: JSON.stringify({
+            user: args.user,
+            key: args.key,
+        }),
+    });
+
+    await sleep(1000)
 }
