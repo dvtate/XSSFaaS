@@ -31,7 +31,7 @@ router.post('/user/signup', async (req, res) => {
     const dupEmail = await db.queryProm('SELECT 1 FROM Users WHERE email = ?;', [email], true);
     if (dupEmail instanceof Error) {
         console.error(dupEmail);
-        return res.status(500).send('database failure: ');
+        return res.status(500).send('database error');
     }
     if (dupEmail.length)
         return res.status(400).send('email already in use');
@@ -40,7 +40,7 @@ router.post('/user/signup', async (req, res) => {
     let userId: number;
     for (;;) {
         // Make pw hash
-        userId = Math.random() * Number.MAX_SAFE_INTEGER;
+        userId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
         const pwHash = getPasswordHash(userId, password);
 
         // Try to create user
@@ -50,10 +50,11 @@ router.post('/user/signup', async (req, res) => {
             false,
         );
 
-        // Somehow duplicate key
         if (result instanceof Error) {
+            // Duplicate userId
             if (result.message.match(/Duplicate entry '.+' for key 'PRIMARY'/))
                 continue;
+
             console.error(result);
             return res.status(500).send(result);
         }
@@ -61,13 +62,12 @@ router.post('/user/signup', async (req, res) => {
         break;
     }
 
-    debug('New user: ', email, name);
-
+    // Log the user in
+    const token = await generateToken(userId, req.body.stayLoggedIn);
+    res.cookie('authToken', token, { maxAge: 12 * 60 * 60 * 1000 });
     res.send('Welcome');
 
-    // Log the user in
-    // const token = await generateToken(userId, req.body.stayLoggedIn);
-    // res.send(token);
+    debug('New user: ', email, name);
 });
 
 // User login
