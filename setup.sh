@@ -6,8 +6,11 @@ set -e
 # git clone https://github.com/dvtate/xssfaas
 # cd xssfaas
 
-# Verify that mysql is installed
-command -v foo >/dev/null 2>&1 || { echo >&2 "mysql is required but not installed.  Aborting."; exit 1; }
+# Verify that dependent packages are installed
+command -v mysql >/dev/null 2>&1 || { echo >&2 "mysql is required but not installed.  Aborting."; exit 1; }
+command -v node >/dev/null 2>&1 || { echo >&2 "nodejs is required but not installed.  Aborting."; exit 1; }
+# TODO check for yarn or other compatible alternative
+command -v npm >/dev/null 2>&1 || { echo >&2 "npm is required but not installed.  Aborting."; exit 1; }
 
 # Get db creds
 read -p "Enter mysql host (ie - localhost): " db_host

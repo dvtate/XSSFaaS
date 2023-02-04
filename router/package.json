@@ -14,7 +14,7 @@
     "url": "github.com/dvtate/xssaas"
   },
   "author": "dvtate",
-  "license": "ISC",
+  "license": "GPL3",
   "dependencies": {
     "axios": "^0.27.2",
     "cors": "^2.8.5",

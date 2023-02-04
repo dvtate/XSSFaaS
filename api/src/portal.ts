@@ -95,7 +95,7 @@ router.get('/functions/', requireAuthMiddleware, async (req, res) => {
     const fns = await db.queryProm(
         'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers'
         + ' FROM Functions WHERE userId = ?;',
-        [String(userId)],
+        [userId],
         true,
     );
     if (fns instanceof Error)
@@ -112,7 +112,7 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
     const fnq = await db.queryProm(
         'SELECT functionId, name, about, creationTs, preventReuse, optSpec, allowForeignWorkers, invokeToken'
         + ' FROM Functions WHERE functionId = ? AND userId = ?;',
-        [ fnId, String(userId) ],
+        [fnId, userId],
         true,
     );
     if (fnq instanceof Error)
@@ -148,7 +148,7 @@ router.get('/workers', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const workers = await db.queryProm(
         'SELECT workerId, connectTs, lastSeenTs, threads, userAgent, ip FROM Workers WHERE userId=?',
-        [String(userId)],
+        [userId],
         true,
     );
     if (workers instanceof Error) {
@@ -211,7 +211,7 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
     const q = await db.queryProm(
         'DELETE FROM FunctionAssets WHERE assetId = ? AND functionId IN ('
             + 'SELECT functionId FROM Functions WHERE userId = ?);',
-        [assetId, String(userId)],
+        [assetId, userId],
         false,
     );
 
@@ -220,10 +220,9 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
         return res.status(500).send('db error');
     }
     res.status(200).send('ok');
-    debug('Asset deleted');
+    debug('Deleted asset ', assetId);
     // TODO delete file from disk
 });
-
 
 /**
  * Remove a function and all of it's associated data
@@ -255,7 +254,7 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
     // Check if they own this function
     const ownedFn = await db.queryProm(
         'SELECT creationTs FROM Functions WHERE functionId = ? AND userId = ?',
-        [functionId, String(userId)],
+        [functionId, userId],
         true,
     );
     if (ownedFn instanceof Error) {
@@ -277,6 +276,7 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
 
 // Upload function asset
 import fileUpload, { UploadedFile } from 'express-fileupload';
+import { fstat, unlink, unlinkSync } from "fs";
 const fileUploadMiddleware = fileUpload({
     safeFileNames: true,
     preserveExtension: true,
@@ -295,7 +295,7 @@ router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUpl
         .filter(k => k.startsWith('file_'))
         .map(k => req.files[k]) as UploadedFile[];
 
-    const mvProm = (f, path: string) =>
+    const mvProm = (f: fileUpload.UploadedFile, path: string) =>
         new Promise<void>((resolve, reject) =>
             f.mv(path, e => e
                 ? reject(e)
@@ -307,11 +307,11 @@ router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUpl
     files.forEach(f => {
         const path = `${process.env.UPLOADS_DIR}/${functionId}/${f.name}`;
         proms.push(mvProm(f, path))
-        const ts = String(Date.now());
+        const ts = Date.now();
         proms.push(db.queryProm(`INSERT INTO FunctionAssets
             (functionId, location, fileName, sizeBytes, creationTs, modifiedTs)
             VALUES (?, ?, ?, ?, ?, ?);`,
-            [functionId, path, f.name, String(f.size), ts, ts],
+            [functionId, path, f.name, f.size, ts, ts],
             false,
         ));
     });
@@ -348,7 +348,7 @@ router.get('/function/:functionId/logs', requireAuthMiddleware, async (req, res)
     // Verify user authorized to fxn
     const userOwnsFn = await db.queryProm(
         `SELECT COUNT(*) FROM Functions WHERE functionId = ? AND userId = ?`,
-        [functionId, String(userId)],
+        [functionId, userId],
         true);
     if (userOwnsFn instanceof Error || !userOwnsFn.length)
         return res.status(404).send("you don't have a function with that id");

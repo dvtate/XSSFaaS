@@ -13,21 +13,27 @@ import { requireAuthMiddleware } from './auth';
 // Gives back a workerId
 // WorkerId used to communicate with router and authentication
 router.post('/enlist', requireAuthMiddleware, async (req, res) => {
-    const { ncores } = req.body;
+    const { ncores, acceptForeignWork } = req.body;
     const { userId } = req.session;
 
     const selectQuery = 'SELECT MAX(workerId) as workerId FROM Workers;';
     const query = process.env.NO_TELEMETRY
         ? await db.queryProm(
-            'INSERT INTO Workers (userId, threads) VALUES (?, ?);' + selectQuery,
-            [userId, ncores],
+            'INSERT INTO Workers (userId, threads, acceptForeignWork) VALUES (?, ?, ?);' + selectQuery,
+            [userId, ncores, acceptForeignWork],
             false,
         )
         : await db.queryProm(
-            'INSERT INTO Workers (userId, threads, userAgent, ip) VALUES (?, ?, ?, ?);' + selectQuery,
-            [userId, ncores, req.headers['user-agent'], req.ip],
+            'INSERT INTO Workers (userId, threads, userAgent, ip, acceptForeignWork) VALUES (?, ?, ?, ?, ?);' + selectQuery,
+            [userId, ncores, req.headers['user-agent'], req.ip, acceptForeignWork],
             false,
         );
+
+    if (query instanceof Error) {
+        debug('database error');
+        console.error(query);
+        res.status(500).send('database error');
+    }
 
     res.json(query[1][0].workerId);
     debug('New worker ', userId, query[1][0].workerId);
@@ -48,18 +54,25 @@ router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
         false,
     );
     if (t instanceof Error) {
+        debug('database error:');
         console.error(t);
-        return res.status(500).send('db error');
+        return res.status(500).send('database error');
     }
     if (t.length === 0)
         return res.status(401).send('unauthorized');
 
     // Write log to server
-    await db.queryProm(
+    const l = await db.queryProm(
         'INSERT INTO TaskLogs (taskId, logType, message, ts) VALUES (?, ?, ?, ?);',
         [taskId, type, message, Date.now()],
         false,
     );
+    if (l instanceof Error) {
+        debug('database error');
+        console.error(l);
+        return res.status(500).send('database error');
+    }
+    res.send('ok');
 });
 
 // Get asset

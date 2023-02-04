@@ -9,9 +9,7 @@ const sleep = async (ms: number) =>
  * @param utils
  */
 export default async function (additionalData: string, utils: TaskUtils) {
-    // Get some IP info data about the worker
     // Some adblockers block this (as they should)
-    //    don't fail if they do
     let loc = 'the internet';
     try {
         const req = await fetch('https://ipinfo.io/json', {
@@ -33,15 +31,17 @@ export default async function (additionalData: string, utils: TaskUtils) {
     utils.log(`After ${timeSpentInQueue} seconds in queue, ${args.user}, says:
         Hello from ${loc}! Thanks to worker #${utils.workerId}.`);
 
-    await sleep(1000)
+    await sleep(1000);
 
     // Spawn another one lol
-    await fetch('https://xss.software/api/work/task/f7b894dd-9c64-11ed-8ec7-f0def1cd1d63?key=' + args.key, {
+    // Change the url to match the one on the manage function page
+    const r = await fetch('https://xss.software/api/work/task/f7b894dd-9c64-11ed-8ec7-f0def1cd1d63?key=' + args.key, {
         method: 'POST',
         body: JSON.stringify({
             user: args.user,
             key: args.key,
         }),
-    });
-
+    }).catch(e => utils.log(e));
+    if (r.status !== 200)
+        utils.log('status: ' + r.status);
 }

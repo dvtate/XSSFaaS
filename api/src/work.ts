@@ -13,7 +13,7 @@ import { requireAuthMiddleware } from './auth';
 router.post(
     '/task/:functionId',
     text({type: '*/*'}),
-    // requireAuthMiddleware, 
+    // requireAuthMiddleware,
     async (req, res) => {
         // Get params
         const { functionId } = req.params;
@@ -35,14 +35,21 @@ router.post(
             return res.status(404).send('no function with given key');
 
         // Add task to database
-        await db.queryProm(
+        const resp = await db.queryProm(
             'INSERT INTO Tasks (functionId, additionalData, arriveTs) VALUES (?, ?, ?)',
-            [functionId, additionalData, String(Date.now())],
+            [functionId, additionalData, Date.now()],
             false,
         );
+        if (resp instanceof Error) {
+            debug('database error');
+            console.error(resp);
+        }
+
 
         // Notify the router that there's new work?
         res.send('received');
+
+        debug('new task');
     },
 );
 

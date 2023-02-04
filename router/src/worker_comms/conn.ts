@@ -17,7 +17,7 @@ import WsServer from './server';
  interface IpInfo {
     ip?: string;         // '8.8.8.8'
     hostname?: string;   // 'dns.google'
-    anycast?: boolean;  // true
+    anycast?: boolean;   // true
     city?: string;       // 'Mountain View'
     region?: string;     // 'California'
     country?: string;    // 'US'
@@ -75,10 +75,10 @@ export default class WorkerConnection {
             clearInterval(this.heartbeat);
             return this.socket.terminate();
         }
-	if (this.isShuttingDown)
-		debug('sd', [...this.activeTasks.values()].map(t => t.taskId).join());
+        if (this.isShuttingDown)
+		    debug('shutting down: ', [...this.activeTasks.values()].map(t => t.taskId).join());
         if (this.isShuttingDown && this.activeTasks.size === 0) {
-            debug('Worker successfully finished all tasks. Disconnecting');
+            debug('Worker %d successfully finished all tasks. Disconnecting', this.workerId);
             clearInterval(this.heartbeat);
             return this.socket.terminate();
         }
@@ -140,13 +140,13 @@ export default class WorkerConnection {
     private async endTask(t: Task, fail = false) {
         // Invalid taskId??
         if (!t) {
-            debug('invalid end task id %d', t.taskId);
+            debug('wtf invalid end task id %d', t.taskId);
             // debug('active:', this.activeTasks.map(t => t.taskId));
             // debug('taskQueue:', this.taskQueue.map(t => t.taskId));
             return;
         }
 
-        // Move onto next task
+        // Move on to next task
         this.activeTasks.delete(t.taskId);
         if (this.taskQueue.size) {
             const t = this.taskQueue.values().next().value;
@@ -209,7 +209,7 @@ export default class WorkerConnection {
         // Validate workerId
         const worker = await queryProm(
             'SELECT threads, acceptForeignWork, ip, ipInfo FROM Workers WHERE workerId=? AND userId=? AND connectTs IS NULL',
-            [workerId, String(this.userId)],
+            [workerId, this.userId],
             true,
         );
         if (worker instanceof Error) {
@@ -239,6 +239,15 @@ export default class WorkerConnection {
         debug('worker authenticated');
         this.server.addWorker(this);
         this.socket.send(new WsMessage(WsMessage.Type.AUTH, []).toString());
+
+        // Update connectedTs
+        queryProm(
+            'UPDATE Workers SET connectTs=? WHERE workerId=? AND userId=?',
+            [Date.now(), workerId, this.userId],
+            false,
+        );
+
+        // Success
         return true;
     }
 
@@ -261,7 +270,7 @@ export default class WorkerConnection {
         // Update database
         queryProm(
             'UPDATE Tasks SET workerId=? WHERE taskId=?',
-            [String(this.workerId), String(t.taskId)],
+            [this.workerId, t.taskId],
             false,
         );
     }

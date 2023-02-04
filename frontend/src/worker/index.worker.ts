@@ -68,7 +68,7 @@ export class TaskUtils {
             { workerId, message, type: 'LOG' },
             authToken,
         );
-        console.log(`[wt][${this.task.taskId}]:`, message);
+        // console.log(`[wt][${this.task.taskId}]:`, message);
         return ret;
     }
 

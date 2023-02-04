@@ -16,6 +16,8 @@ ctlBtn.onclick = startWorking;
 const nprocInp = document.getElementById('inp-nproc') as HTMLInputElement;
 nprocInp.value = String(navigator.hardwareConcurrency);
 
+const acceptForeignWorkInp = document.getElementById('inp-accept-foreign') as HTMLInputElement;
+
 main();
 
 function main() {
@@ -54,6 +56,9 @@ function main() {
         }
     }
 
+    if (getParams['private'] !== undefined)
+        acceptForeignWorkInp.checked = false;
+
     // Start without user interaction?
     if (getParams['start'] !== undefined)
         startWorking();
@@ -76,28 +81,37 @@ function startWorking() {
         nprocInp.style.border = '1px solid red';
         return;
     }
-    app = new WorkerApp(nproc);
+    app = new WorkerApp(acceptForeignWorkInp.checked, nproc, undefined);
     statsInit(app);
 
-    // Hide number input
+    // Hide inputs
     nprocInp.remove();
     document.getElementById('lbl-inp-nproc').remove();
+    acceptForeignWorkInp.remove();
+    document.getElementById('lbl-inp-accept-foreign').remove();
 
     // Prevent tab from being closed randomly
     app.aquireWakelock();
-    app.setExitListener();
+    app.setExitListener(() => {
+        ctlBtn.remove();
+    });
 
     // Update button after short delay to prevent missclick
     setTimeout(() => {
         ctlBtn.onclick = stopWorking;
         ctlBtn.innerHTML = "Stop";
     }, 150);
+
+    // TODO update url with input values
+    //      https://stackoverflow.com/questions/1090948/change-url-parameters-and-specify-defaults-using-javascript
 }
 
 /**
  * Prepares the tab for exit
  */
 function stopWorking() {
-    app.prepareExit(() => window.close());
+    app.prepareExit(() => {
+        window.close();
+    });
     ctlBtn.remove();
 }

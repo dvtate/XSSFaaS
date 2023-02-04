@@ -11,8 +11,9 @@ import type { Task } from "./thread";
 import type WorkerApp from "./worker";
 
 const statsView = document.getElementById('stats-view');
+const statsBtn = document.getElementById('btn-stats-refresh') as HTMLButtonElement;
 
-let uptimeStart = Date.now();
+const uptimeStart = Date.now();
 
 /**
  * Uptime string
@@ -31,24 +32,35 @@ function msToString(ms: number): string {
         }${days > 0 ? ` and ${days.toLocaleString()} days` : ''}`;
 };
 
+
+let timeout;
 function updateStats(app: WorkerApp) {
+    const start = performance.now();
+
     let ret = `Active Threads: ${app.activeThreads()}/${app.nproc
         }<br/>Uptime: ${msToString(Date.now() - uptimeStart)}<br/>`;
 
     const allTasks: Task[] = [...app.taskQueue, ...app.activeTasks(), ...app.completedTasks()];
     if (allTasks.length == 0) {
         statsView.innerHTML = ret;
-        return;
+    } else {
+        const avg = (ns: number[]) => ns.reduce((p, n) => p + n, 0) / ns.length;
+        const avgQueueTime = avg(allTasks.map(t => t.timeSpentInQueue()));
+        const avgRunTime = avg(allTasks.map(t => t.runtime()).filter(ms => ms !== undefined));
+        statsView.innerHTML = `${ret
+            }Average Queue Time: ${msToString(avgQueueTime)
+            }<br/>Average Runtime ${msToString(avgRunTime)}<br/>`;
     }
 
-    const avg = (ns: number[]) => ns.reduce((p, n) => p + n, 0) / ns.length;
-    const avgQueueTime = avg(allTasks.map(t => t.timeSpentInQueue()));
-    const avgRunTime = avg(allTasks.map(t => t.runtime()).filter(ms => ms !== undefined));
-    statsView.innerHTML = `${ret
-        }Average Queue Time: ${msToString(avgQueueTime)
-        }<br/>Average Runtime ${msToString(avgRunTime)}<br/>`;
+    // Max 0.1% cpu time spent calculating stats
+    timeout = setTimeout(() => updateStats(app), (performance.now() - start) * 1000);
 }
 
 export default function init(app: WorkerApp) {
-    return setInterval(() => updateStats(app), 250);
+    statsBtn.onclick = () => {
+        clearTimeout(timeout);
+        updateStats(app);
+    };
+    statsBtn.disabled = false;
+    updateStats(app);
 }

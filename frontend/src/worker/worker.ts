@@ -34,10 +34,12 @@ export default class WorkerApp {
     protected wakeLock: any = null;
 
     /**
+     * @param acceptForeignWork should this worker accept tasks from other users?
      * @param nproc number of worker threads to use
      * @param authToken Authentication token for user
      */
     constructor(
+        public acceptForeignWork: boolean = true,
         public nproc: number = navigator.hardwareConcurrency - 1,
         public authToken = util.getCookie('authToken'),
     ) {
@@ -86,15 +88,15 @@ export default class WorkerApp {
      * Get a new worker id from api server
      */
     private async newWorkerId() {
-        // Get some data which is important
+        // not cool
         const ipInfo = ENABLE_GEO_FEATURE
-            ? null // await fetch('https://ipinfo.io', { headers: { Accepts : 'application/json' }}).then(r => r.json())
+            ? null // await fetch('https://ipinfo.io/json', { headers: { Accepts : 'application/json' }}).then(r => r.json())
             : null;
 
         // Request new workerId from api server
         const workerIdReq = await util.post(
             API_SERVER_URL + '/worker/enlist',
-            { ncores: this.nproc, ipInfo },
+            { ncores: this.nproc, acceptForeignWork: this.acceptForeignWork, ipInfo },
             this.authToken,
         );
         if (workerIdReq.status !== 200)
@@ -194,7 +196,7 @@ export default class WorkerApp {
     /**
      * User wants to close the tab
      */
-    async prepareExit(cb?: Function): Promise<void> {
+    async prepareExit(cb?: CallableFunction): Promise<void> {
         // Stop working
         this.threads.forEach(t => t.kill());
         this.ws.send(new WsMessage(WsMessage.Type.CLEAR_QUEUE, []).toString());
@@ -224,7 +226,7 @@ export default class WorkerApp {
     /**
      * Prompt user before they close tab, perform damage control
      */
-    setExitListener() {
+    setExitListener(cb?: CallableFunction) {
         // Prevent user from closing tab
         // https://stackoverflow.com/questions/14746851/execute-javascript-function-before-browser-reloads-closes-browser-exits-page
         window.onbeforeunload = (evt: any) => {
@@ -234,7 +236,7 @@ export default class WorkerApp {
             evt.returnValue = '';
 
             // Mitigate damage
-            this.prepareExit();
+            this.prepareExit(cb);
 
             // Stops it
             return null;

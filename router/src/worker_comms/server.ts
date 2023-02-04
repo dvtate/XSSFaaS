@@ -106,7 +106,6 @@ export default class WsServer {
         this.workers = this.workers.filter(wkr => wkr !== w);
     }
 
-
     /**
      * Fetch new user-submitted tasks from the database
      */
@@ -124,7 +123,7 @@ export default class WsServer {
 
         // Distribute new work to workers
         return this.distribute(...work.map(w =>
-            new Task(w.taskId, w.functionId, w.userId, w.additionalData, w.arriveTs, w.allowForeignWorkers)
+            new Task(w.taskId, w.functionId, w.userId, w.additionalData, w.arriveTs, w.allowForeignWorkers, w.preventReuse)
         ));
     }
 
@@ -133,7 +132,6 @@ export default class WsServer {
      * @param t
      */
     private async distributeTask(t: Task) {
-        // TODO preventReuse + cutoff
         const overloadedCutoff = 10;
 
         // Filter workers based on policy
@@ -143,7 +141,7 @@ export default class WsServer {
         if (!t.allowForeignWorkers)
             workers = workers.filter(w => w.userId === t.userId);
         else
-            workers = workers.filter(w => w.acceptForeignWork || t.userId === w.userId)
+            workers = workers.filter(w => w.acceptForeignWork || t.userId === w.userId);
 
         // Reuse policy
         // TODO there should be a 3rd option for don't care

@@ -34,8 +34,8 @@ export default class Task {
         public readonly userId: number,
         public readonly additionalData: string,
         public readonly arriveTs = Date.now(),
-        public allowForeignWorkers = true,
-        public preventReuse = false,
+        public readonly allowForeignWorkers = true,
+        public readonly preventReuse = false,
     ) {
         this.additionalData = additionalData;
     }
@@ -46,7 +46,7 @@ export default class Task {
     async writeToDb() {
         return queryProm(
             'UPDATE Tasks SET startTs=?, endTs=? WHERE taskId=?',
-            [this.startTs, this.endTs, this.taskId].map(String),
+            [this.startTs, this.endTs, this.taskId],
             false,
         );
     }
@@ -58,7 +58,7 @@ export default class Task {
         this.failed = true;
         return queryProm(
             'UPDATE Tasks SET startTs=?, failed=1 WHERE taskId=?',
-            [this.startTs ? String(this.startTs) : null, String(this.taskId)],
+            [this.startTs ? this.startTs : null, this.taskId],
             false,
         );
     }
