@@ -7,11 +7,10 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" />
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/minstyle.io@2.0.1/dist/css/minstyle.io.min.css" />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-YX5E340V2Y"></script>
-        <script>
+        <script async>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-YX5E340V2Y');
         </script>
     </head>
@@ -34,6 +33,10 @@
             <div id="page">
                 <noscript><h1>This page requires JavaScript to work</h1></noscript>
                 <h2>Quick Actions<h2>
+                <div id="quick-actions">
+                    <button id="btn-log-out">Log Out</button>
+                    <button id="btn-reset-tokens" class="ms-btn ms-primary">Reset Auth Tokens</button>
+                </div>
 
                 <h2>Functions</h2>
                 These are the different types of tasks you can automate.

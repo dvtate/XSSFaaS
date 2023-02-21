@@ -55,6 +55,24 @@ export async function get(url: string, auth = getCookie('authToken')): Promise<H
 }
 
 /**
+ * @returns Object representing get params
+ */
+export function getGetParams(): { [param: string] : string } | null {
+    let output = {};
+    if (window.location.search){
+        const queryParams = window.location.search.substring(1);
+        const listQueries = queryParams.split("&");
+        for (let query in listQueries) {
+            if (listQueries.hasOwnProperty(query)) {
+                const queryPair = listQueries[query].split('=');
+                output[queryPair[0]] = decodeURIComponent(queryPair[1] || "");
+            }
+        }
+    }
+    return output;
+}
+
+/**
  * Get the value of a cookie
  * @param cname name of cookie to get value of
  * @returns value stored in cookie or empty string
@@ -74,24 +92,6 @@ export function getCookie(cname: string) {
 }
 
 /**
- * @returns Object representing get params
- */
-export function getGetParams(): { [param: string] : string } | null {
-    let output = {};
-    if (window.location.search){
-        const queryParams = window.location.search.substring(1);
-        const listQueries = queryParams.split("&");
-        for (let query in listQueries) {
-            if (listQueries.hasOwnProperty(query)) {
-                const queryPair = listQueries[query].split('=');
-                output[queryPair[0]] = decodeURIComponent(queryPair[1] || "");
-            }
-        }
-    }
-    return output;
-}
-
-/**
  * Set cookie
  * @param name name for the cookie
  * @param value value to store in the cookie
@@ -102,4 +102,19 @@ export function setCookie(name: string, value: string, expMs: number) {
     const d = new Date(Date.now() + expMs);
     const expires = 'expires=' + d.toUTCString();
     document.cookie = `${name}=${value};${expires};path=/`;
+}
+
+/**
+ * Delete a cookie
+ * @param name 
+ * @param path 
+ * @param domain 
+ */
+export function deleteCookie( name: string, path?: string, domain?: string) {
+    if (getCookie(name)) {
+        document.cookie = name + "="
+            + (path ? ";path=" + path : "")
+            + (domain ? ";domain=" + domain : "")
+            + ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    }
 }

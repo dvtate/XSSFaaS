@@ -71,11 +71,9 @@ async function makeLists() {
     .then(fr =>{
         if (fr.status === 401)
             return window.location.href = 'login.html';
-        if (fr.status !== 200) {
-            fnList.innerHTML = `Failed to get functions list: ${fr.status} : ${fr.text}`;
-        } else {
-            fnList.innerHTML = JSON.parse(fr.text).map(makeFunctionCard).join('');
-        }
+        fnList.innerHTML = fr.status !== 200
+            ? `Failed to get functions list: ${fr.status} : ${fr.text}`
+            : JSON.parse(fr.text).map(makeFunctionCard).join('');
     });
 
     // Populate workers table
@@ -95,3 +93,14 @@ makeLists();
 // Update worker page link to include authToken
 document.getElementById('worker-page-link')
     .setAttribute('href', `../worker/?authToken=${util.getCookie('authToken')}&n=x1`);
+
+// Make logout button work
+document.getElementById('btn-log-out').onclick = () => {
+    util.deleteCookie('authToken');
+    window.location.href = 'login.html';
+};
+
+document.getElementById('btn-reset-tokens').onclick = () => {
+    // TODO backend
+    alert('Not implemented yet :(');
+}
