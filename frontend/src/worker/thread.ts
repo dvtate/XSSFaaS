@@ -7,7 +7,12 @@ import WorkerApp from './worker';
 export class Task {
     public receivedTs: number;
     public startTs: number;
-    public endTs: number;
+    protected _endTs: number;
+
+    /**
+     * Canvas instantiated in main thread and sent to workers where constructor is undefined
+     */
+    public canvas = new OffscreenCanvas(0, 0);
 
     /**
      * @param taskId task identifier
@@ -35,6 +40,15 @@ export class Task {
             return Date.now() - this.startTs;
         return this.endTs - this.startTs;
     }
+
+    done() {
+        this._endTs = Date.now();
+        this.canvas = null;
+    }
+
+    get endTs() {
+        return this._endTs;
+    }
 }
 
 /**
@@ -45,7 +59,7 @@ export class Task {
  */
 enum IPCMessageType {
     H2C_NEW_TASK,           // Host gives the child a new task to do
-                            // args: fn id, task id, additional data
+                            // arg: Task object
     C2H_NEXT_TASK,          // Child informs host that it's moving to the next task
                             // args: none
     C2H_FAIL,               // Failure to complete a task/error
@@ -152,7 +166,7 @@ export default class Thread {
         // Finish task
         const t = this.activeTask;
         if (t) {
-            t.endTs = Date.now();
+            t.done();
             this.completedTasks.push(t);
             this.activeTask = null;
             if (failed)
@@ -179,11 +193,7 @@ export default class Thread {
             console.error('cannot doTask when activeTask still in progress', t, this);
         this.activeTask = t;
         this.activeTask.startTs = Date.now();
-        this.w.postMessage(new IPCMessage(
-            IPCMessage.Type.H2C_NEW_TASK,
-            this.activeTask,
-            // [this.activeTask.functionId, this.activeTask.additionalData]
-        ));
+        this.w.postMessage(new IPCMessage(IPCMessage.Type.H2C_NEW_TASK, this.activeTask));
         writeLog(new Log(Log.Type.W_INFO, `Task ${this.activeTask.taskId} assigned to Thread ${this.index}`));
         this.workerApp.taskStarted(t);
     }
