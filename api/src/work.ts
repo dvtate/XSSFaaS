@@ -5,19 +5,15 @@ const debug = Debugger('xss:api:work');
 import * as db from './db';
 
 import { Router } from 'express';
+import { text } from 'body-parser';
 const router = Router();
 
-import { text } from 'body-parser';
-import { requireAuthMiddleware } from './auth';
-// TODO require auth
 router.post(
     '/task/:functionId',
     text({type: '*/*'}),
-    // requireAuthMiddleware,
     async (req, res) => {
         // Get params
         const { functionId } = req.params;
-        // const { userId } = req.session;
         const invokeToken = decodeURIComponent(String(req.query.key));
         const additionalData = req.body;
 

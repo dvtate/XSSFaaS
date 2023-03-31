@@ -37,6 +37,8 @@ import workerRouter from './worker';
 app.use('/api/worker', workerRouter);
 import workRouter from './work';
 app.use('/api/work', workRouter);
+import publicApi from './public_api';
+app.use('/api/public', publicApi);
 
 // Import http server stuff
 import { createServer as HttpsServer } from 'https';
