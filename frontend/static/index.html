@@ -67,19 +67,19 @@
                     <p class="ms-hero-subtitle">xss.software has completed a lot of tasks</p>
                 </div>
             </div>
-            <div class="ms-hero ms-small ms-primary">
+            <div class="ms-hero ms-small ms-secondary">
                 <div class="ms-hero-body">
                     <h1 class="ms-hero-title" id="worker-count">... workers</h1>
-                    <p class="ms-hero-subtitle">Workers can have more than one CPU but usually have </p>
+                    <p class="ms-hero-subtitle">Each worker is a computer connected to the network</p>
                 </div>
             </div>
-            <div class="ms-hero ms-small ms-primary">
+            <div class="ms-hero ms-small ms-action">
                 <div class="ms-hero-body">
                     <h1 class="ms-hero-title" id="thread-count">... threads</h1>
                     <p class="ms-hero-subtitle">Threads correspond to worker CPU cores</p>
                 </div>
             </div>
-            <div class="ms-hero ms-small ms-primary">
+            <div class="ms-hero ms-small ms-action2">
                 <div class="ms-hero-body">
                     <h1 class="ms-hero-title" id="load-average">... load average</h1>
                     <p class="ms-hero-subtitle">A load average of less than 1 means the system is underutilized</p>
@@ -121,13 +121,16 @@
         </footer>
         <script src="js/page.bundle.js" async defer></script>
         <script>
-            // Update stats section
+        // Update stats section
+        (function getStats() {
             fetch('/api/public/stats').then(r => r.json()).then(stats => {
                 document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks} completed tasks`;
-                document.getElementById('worker-count').innerHTML = `${stats.completedTasks} workers`;
-                document.getElementById('thread-count').innerHTML = `${stats.completedTasks} threads`;
-                document.getElementById('load-average').innerHTML = `${stats.completedTasks} load average`;
-            })
+                document.getElementById('worker-count').innerHTML = `${stats.workers} workers`;
+                document.getElementById('thread-count').innerHTML = `${stats.threads} threads`;
+                document.getElementById('load-average').innerHTML = `${stats.loadAverage} load average`;
+                setTimeout(getStats, 3000);
+	    }).catch(console.error);
+        })();
         </script>
     </body>
 </html>
