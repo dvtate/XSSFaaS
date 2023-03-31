@@ -1,0 +1,2 @@
+- [ ] stats on homepage
+    - tasks completed, CPU cores active, GPUs active, etc.

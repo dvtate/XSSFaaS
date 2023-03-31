@@ -252,7 +252,7 @@ export default class WorkerConnection {
     }
 
     jobsPerProc() {
-        return this.taskQueue.size / this.threads;
+        return this.taskQueue.size + this.activeTasks.size / this.threads;
     }
 
     /**

@@ -177,4 +177,22 @@ export default class WsServer {
     async distribute(...tasks: Task[]) {
         return Promise.all(tasks.map(this.distributeTask.bind(this)));
     }
+
+    /**
+     * Get some statistics about the workforce
+     * @returns object with statistics
+     */
+    stats() {
+        const workers = this.workers.length;
+        const threads = this.workers
+            .map(w => w.threads)
+            .reduce((a, b) => a + b, 0);
+        const tasks = this.workers
+            .map(w => w.jobsPerProc() * w.threads)
+            .reduce((a, b) => a + b, 0);
+        return {
+            workers, threads,
+            loadAverage: tasks / threads,
+        };
+    }
 }
