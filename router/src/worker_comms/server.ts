@@ -191,7 +191,7 @@ export default class WsServer {
             .map(w => w.jobsPerProc() * w.threads)
             .reduce((a, b) => a + b, 0);
         return {
-            workers, threads,
+            workers, threads, tasks,
             loadAverage: tasks / threads,
         };
     }

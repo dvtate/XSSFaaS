@@ -58,6 +58,34 @@
                 <li>WebGPU for rendering and parallel computations</li>
             </ul>
 
+            <!-- stats -->
+            <h2>Statistics</h2>
+            <noscript>JavaScript Required to access statistics endpoint</noscript>
+            <div class="ms-hero ms-small ms-primary">
+                <div class="ms-hero-body">
+                    <h1 class="ms-hero-title" id="completed-tasks">... completed tasks</h1>
+                    <p class="ms-hero-subtitle">xss.software has completed a lot of tasks</p>
+                </div>
+            </div>
+            <div class="ms-hero ms-small ms-primary">
+                <div class="ms-hero-body">
+                    <h1 class="ms-hero-title" id="worker-count">... workers</h1>
+                    <p class="ms-hero-subtitle">Workers can have more than one CPU but usually have </p>
+                </div>
+            </div>
+            <div class="ms-hero ms-small ms-primary">
+                <div class="ms-hero-body">
+                    <h1 class="ms-hero-title" id="thread-count">... threads</h1>
+                    <p class="ms-hero-subtitle">Threads correspond to worker CPU cores</p>
+                </div>
+            </div>
+            <div class="ms-hero ms-small ms-primary">
+                <div class="ms-hero-body">
+                    <h1 class="ms-hero-title" id="load-average">... load average</h1>
+                    <p class="ms-hero-subtitle">A load average of less than 1 means the system is underutilized</p>
+                </div>
+            </div>
+
             <h2>Technology In Use</h2>
             <p>XSSaaS uses modern web technology in order to maximize performance and ease of use while
                 avoiding the bloat of many popular frameworks.</p>
@@ -92,5 +120,14 @@
             </div>
         </footer>
         <script src="js/page.bundle.js" async defer></script>
+        <script>
+            // Update stats section
+            fetch('/api/public/stats').then(r => r.json()).then(stats => {
+                document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks} completed tasks`;
+                document.getElementById('worker-count').innerHTML = `${stats.completedTasks} workers`;
+                document.getElementById('thread-count').innerHTML = `${stats.completedTasks} threads`;
+                document.getElementById('load-average').innerHTML = `${stats.completedTasks} load average`;
+            })
+        </script>
     </body>
 </html>

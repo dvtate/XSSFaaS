@@ -25,6 +25,7 @@ router.get('/stats', async (req, res) => {
             workers: stats.workers,
             threads: stats.threads,
             loadavg: stats.loadAverage,
+            activeTasks: stats.tasks,
         });
     } catch (e) {
         debug(e);
