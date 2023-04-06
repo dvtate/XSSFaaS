@@ -192,7 +192,7 @@ export default class WsServer {
             .reduce((a, b) => a + b, 0);
         return {
             workers, threads, tasks,
-            loadAverage: tasks / threads,
+            loadAverage: (tasks / threads) || 0,
         };
     }
 }
