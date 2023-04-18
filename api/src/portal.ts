@@ -181,6 +181,7 @@ router.post('/function', requireAuthMiddleware, async (req, res) => {
 });
 
 // Alter function
+// TODO method should be PATCH
 router.post('/function/:functionId/alter', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const { functionId } = req.params;
