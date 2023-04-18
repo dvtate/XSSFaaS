@@ -24,7 +24,7 @@ router.get('/stats', async (req, res) => {
             completedTasks: completedTasksCount[0]["COUNT(*)"],
             workers: stats.workers,
             threads: stats.threads,
-            loadavg: stats.loadAverage,
+            loadAverage: stats.loadAverage,
             activeTasks: stats.tasks,
         });
     } catch (e) {

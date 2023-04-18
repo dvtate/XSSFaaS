@@ -114,9 +114,12 @@
 
         <footer class="ms-footer">
             <div class="container">
-                <p><a href="https://Github.com/dvtate/xssaas" target="_blank">Proudly Free and Open Source</a>
+                <p><a href="https://Github.com/dvtate/XSSFaaS" target="_blank">Proudly Free and Open Source</a>
                     - <a href="worker/">Worker Page</a>
-                    - <a href="portal/">User Portal</a></p>
+                    - <a href="portal/">User Portal</a>
+                    - <a href="portal/signup.html">Sign Up</a>
+		    - <a href="portal/login.html">Log In</a>
+                    - <a href="https://GitHub.com/dvtate/XSSFaaS/wiki">Wiki</a>
             </div>
         </footer>
         <script src="js/page.bundle.js" async defer></script>
@@ -125,8 +128,8 @@
         (function getStats() {
             fetch('/api/public/stats').then(r => r.json()).then(stats => {
                 document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks} completed tasks`;
-                document.getElementById('worker-count').innerHTML = `${stats.workers} workers`;
-                document.getElementById('thread-count').innerHTML = `${stats.threads} threads`;
+                document.getElementById('worker-count').innerHTML = `${stats.workers} active workers`;
+                document.getElementById('thread-count').innerHTML = `${stats.threads} active threads`;
                 document.getElementById('load-average').innerHTML = `${stats.loadAverage} load average`;
                 setTimeout(getStats, 3000);
 	    }).catch(console.error);
