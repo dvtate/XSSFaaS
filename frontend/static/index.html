@@ -122,14 +122,18 @@
         <script src="js/page.bundle.js" async defer></script>
         <script>
         // Update stats section
-        (function getStats() {
-            fetch('/api/public/stats').then(r => r.json()).then(stats => {
-                document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks} completed tasks`;
-                document.getElementById('worker-count').innerHTML = `${stats.workers} workers`;
-                document.getElementById('thread-count').innerHTML = `${stats.threads} threads`;
-                document.getElementById('load-average').innerHTML = `${stats.loadAverage} load average`;
-                setTimeout(getStats, 3000);
-	    }).catch(console.error);
+        let statsJson = '';
+        (async function getStats() {
+            const text = await fetch('/api/public/stats').then(r => r.text()).catch(console.error);
+            if (text != statsJson) {
+                statsJson = text;
+                const stats = JSON.parse(statsJson);
+                document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks.toLocaleString()} completed tasks`;
+                document.getElementById('worker-count').innerHTML = `${stats.workers.toLocaleString()} workers`;
+                document.getElementById('thread-count').innerHTML = `${stats.threads.toLocaleString()} threads`;
+                document.getElementById('load-average').innerHTML = `${stats.loadAverage.toLocaleString()} load average`;
+            }
+            return setTimeout(getStats, 1000);
         })();
         </script>
     </body>
