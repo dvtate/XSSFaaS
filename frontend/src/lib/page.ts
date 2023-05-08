@@ -7,8 +7,8 @@ if (link) {
         link.innerHTML = 'Portal';
         link.href = '/portal';
     } else {
-        link.innerHTML = 'Log In';
-        link.href = '/portal/login.html';
+        link.innerHTML = 'Sign Up';
+        link.href = '/portal/signup.html';
     }
 }
 
