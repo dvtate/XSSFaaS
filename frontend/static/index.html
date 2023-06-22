@@ -127,10 +127,10 @@
         // Update stats section
         (function getStats() {
             fetch('/api/public/stats').then(r => r.json()).then(stats => {
-                document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks} completed tasks`;
-                document.getElementById('worker-count').innerHTML = `${stats.workers} active workers`;
-                document.getElementById('thread-count').innerHTML = `${stats.threads} active threads`;
-                document.getElementById('load-average').innerHTML = `${stats.loadAverage} load average`;
+                document.getElementById('completed-tasks').innerHTML = `${stats.completedTasks.toLocaleString()} completed tasks`;
+                document.getElementById('worker-count').innerHTML = `${stats.workers.toLocaleString()} active workers`;
+                document.getElementById('thread-count').innerHTML = `${stats.threads.toLocaleString()} active threads`;
+                document.getElementById('load-average').innerHTML = `${stats.loadAverage.toLocaleString()} load average`;
                 setTimeout(getStats, 3000);
 	    }).catch(console.error);
         })();

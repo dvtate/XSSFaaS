@@ -16,5 +16,5 @@ export default async function startInternalApiServer(wsServer: WsServer) {
     // app.use(json());
     app.get('/stats', (_, res) => res.json(wsServer.stats()));
     const port = process.env.INTERNAL_PORT || 5538;
-    app.listen(port, () => debug('Internal API listening on port %d', port) );
+    app.listen(port, '127.0.0.1', () => debug('Internal API listening on port %d', port) );
 }

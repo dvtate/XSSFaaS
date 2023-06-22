@@ -27,6 +27,17 @@ app.use(cookieParser());
 //     optionSuccessStatus: 200,
 // }));
 
+
+const querystring = require('querystring');
+app.use((req, res, next) => {
+    if (req.path === "/") return next();
+    const bodyString = JSON.stringify(req.body);
+    const qs = querystring.stringify(req.query);
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+    debug(`${req.method} ${req.path}${qs ? '?' + qs : ''} body=${bodyString.length > 2 ? bodyString.length.toString() + " bytes" : "∅"} (${ip})`);
+    next();
+});
+
 // Probably better to have this hosted by 3rd party static host w/ a cdn
 app.use('/', express.static('static'));
 
