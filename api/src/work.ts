@@ -15,7 +15,7 @@ router.post(
         // Get params
         const { functionId } = req.params;
         const invokeToken = decodeURIComponent(String(req.query.key));
-        const additionalData = req.body;
+        const additionalData: string = typeof req.body === 'object' ? JSON.stringify(req.body) : req.body;
 
         // Verify they have right invokeToken
         const fn = await db.queryProm(

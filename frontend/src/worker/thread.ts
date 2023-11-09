@@ -10,11 +10,6 @@ export class Task {
     protected _endTs: number;
 
     /**
-     * Canvas instantiated in main thread and sent to workers where constructor is undefined
-     */
-    public canvas = new OffscreenCanvas(0, 0);
-
-    /**
      * @param taskId task identifier
      * @param functionId function identifier
      * @param additionalData arguments to the relevant function
@@ -43,7 +38,6 @@ export class Task {
 
     done() {
         this._endTs = Date.now();
-        this.canvas = null;
     }
 
     get endTs() {

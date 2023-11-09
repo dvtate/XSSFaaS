@@ -6,7 +6,7 @@ import { post } from "../lib/util";
  * Worker session token
  */
 // Need to make sure that this isn't directly accessible to the client function
-export let authTokenRef: { authToken: string };
+export let authTokenRef: { authToken: string } = { authToken: '' };
 
 
 /**
@@ -42,10 +42,6 @@ export class TaskUtils {
         );
         // console.log(`[wt][${this.task.taskId}]:`, message);
         return ret;
-    }
-
-    get canvas() {
-        return this.task.canvas;
     }
 
     // TODO requestNewHost() if host doesn't meet requirements for this task
