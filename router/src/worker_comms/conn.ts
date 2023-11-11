@@ -198,6 +198,7 @@ export default class WorkerConnection {
      */
     private async auth(authToken: string, workerId: string) {
         // Validate authToken
+        console.log(authToken, workerId);
         const auth = await authUserSafe(authToken);
         if (auth.error) {
             debug(auth.error);

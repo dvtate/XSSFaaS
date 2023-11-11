@@ -25,7 +25,8 @@ export class TaskUtils {
      * @param workerId ID of worker this task is running on
      */
     constructor(
-        public task: Task, 
+        public task: Task,
+        protected readonly authToken = authTokenRef.authToken,
         protected readonly workerId = globalThis.workerId,
     ) {
     }
@@ -35,11 +36,12 @@ export class TaskUtils {
      * @param message Message to write
      */
     async log(message: string) {
-        const ret = post(
+        const ret = await post(
             `${API_SERVER_URL}/worker/log/${this.task.taskId}`,
             { workerId: this.workerId, message, type: 'LOG' },
-            authTokenRef.authToken,
+            this.authToken,
         );
+        console.log(ret);
         // console.log(`[wt][${this.task.taskId}]:`, message);
         return ret;
     }

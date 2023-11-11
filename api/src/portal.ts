@@ -1,5 +1,10 @@
+
 // External imports
-import crypto from "crypto";
+import {  unlink } from 'fs/promises';
+import { fstat, } from "fs";
+
+import fileUpload, { UploadedFile } from 'express-fileupload';
+import crypto from 'crypto';
 import validator from 'validator';
 
 // Initialize debugger
@@ -30,7 +35,7 @@ router.post('/user/signup', async (req, res) => {
     // Verify email not duplicate
     const dupEmail = await db.queryProm('SELECT 1 FROM Users WHERE email = ?;', [email], true);
     if (dupEmail instanceof Error) {
-        console.error(dupEmail);
+        debug(dupEmail);
         return res.status(500).send('database error');
     }
     if (dupEmail.length)
@@ -55,7 +60,7 @@ router.post('/user/signup', async (req, res) => {
             if (result.message.match(/Duplicate entry '.+' for key 'PRIMARY'/))
                 continue;
 
-            console.error(result);
+            debug(result);
             return res.status(500).send(result);
         }
 
@@ -76,7 +81,7 @@ router.post('/user/login', async (req, res) => {
 
     const user = await db.queryProm('SELECT userId, passwordHash FROM Users WHERE email = ?;', [email], true);
     if (user instanceof Error) {
-        console.error(user);
+        debug(user);
         return res.status(500).send(user);
     }
     if (!user[0])
@@ -126,7 +131,7 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
         FROM TaskLogs INNER JOIN Tasks ON TaskLogs.taskId = Tasks.taskId
         WHERE functionId = ?;`, [fnId], true);
     if (logCount instanceof Error)
-        console.error(logCount);
+        debug(logCount);
     else
         fn.logCount = logCount[0].numLogs;
 
@@ -137,7 +142,7 @@ router.get('/function/:fnId', requireAuthMiddleware, async (req, res) => {
         true,
     );
     if (assets instanceof Error)
-        console.error(assets);
+        debug(assets);
     fn.assets = assets instanceof Error ? [] : assets;
 
     res.json(fn);
@@ -152,7 +157,7 @@ router.get('/workers', requireAuthMiddleware, async (req, res) => {
         true,
     );
     if (workers instanceof Error) {
-        console.error(workers);
+        debug(workers);
         return res.status(500).send('db error');
     }
     res.json(workers);
@@ -172,7 +177,7 @@ router.post('/function', requireAuthMiddleware, async (req, res) => {
         false,
     );
     if (qr instanceof Error) {
-        console.error(qr);
+        debug(qr);
         return res.status(500).send('db error');
     }
     const { functionId } = qr[1][0];
@@ -197,32 +202,72 @@ router.post('/function/:functionId/alter', requireAuthMiddleware, async (req, re
     );
 
     if (q instanceof Error) {
-        console.error(q);
+        debug(q);
         return res.status(500).send('db error');
     }
 
     res.status(200).send('ok');
 });
 
+/**
+ * Delete a FunctionaAsset
+ * @param assetId id for asset to delete
+ * @param userId optional userid to prevent user abuse
+ * @returns true on success, false on not found, error on error
+ */
+async function deleteFunctionAsset(assetId:string, userId?: number): Promise<boolean | Error> {
+    // Get local path to asset
+    const userCheck = userId 
+        ? ' AND functionId IN (SELECT functionId FROM Functions WHERE userId = ?)'
+        : '';
+    let q = await db.queryProm(
+        'SELECT location FROM FunctionAssets WHERE assetId = ?' + userCheck,
+        userId ? [assetId, userId] : [assetId],
+        true,
+    );
+    if (q instanceof Error)
+        return q;
+    if (!q.length)
+        return false;
+    const { location } = q[0];
+
+    // Remove asset from DB
+    q = await db.queryProm(
+        'DELETE FROM FunctionAssets WHERE assetId = ?' + userCheck,
+        userId ? [assetId, userId] : [assetId],
+        false,
+    );
+    if (q instanceof Error)
+        return q;
+
+    // Delete asset
+    try {
+        await unlink(location);
+    } catch (e) {
+        debug('failed to unlink file ', location);
+        return e;
+    }
+}
+
 // Delete asset
 router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
     const { userId } = req.session;
     const { assetId } = req.params;
 
-    const q = await db.queryProm(
-        'DELETE FROM FunctionAssets WHERE assetId = ? AND functionId IN ('
-            + 'SELECT functionId FROM Functions WHERE userId = ?);',
-        [assetId, userId],
-        false,
-    );
+    // Delete asset
+    const ret = await deleteFunctionAsset(assetId, userId);
 
-    if (q instanceof Error) {
-        console.error(q);
-        return res.status(500).send('db error');
+    // Handle failures
+    if (!ret)
+        return res.status(404).send('asset not found');
+    if (ret instanceof Error) {
+        debug('failed to delete asset', ret);
+        return res.status(500).send('server error');
     }
+
+    // Success
     res.status(200).send('ok');
-    debug('Deleted asset ', assetId);
-    // TODO delete file from disk
+    debug('Deleted asset ', assetId, location);
 });
 
 /**
@@ -230,11 +275,17 @@ router.delete('/asset/:assetId', requireAuthMiddleware, async (req, res) => {
  * @param functionId id of function to be deleted
  */
 async function deleteFunction(functionId: string) {
-    // Queries required to delete the function
+    // Delete function assets
+    const assets = await db.queryProm('SELECT assetId FROM FunctionAssets WHERE functionId=?', [functionId], true);
+    if (assets instanceof Error)
+        throw assets;
+    else
+        await Promise.all(assets.map(a => deleteFunctionAsset(a.assetId)));
+
+    // Queries required to delete the function (order matters)
     const queries: Array<[string, string[]]> = [
         ['DELETE FROM TaskLogs WHERE taskId IN (SELECT taskId FROM Tasks WHERE functionId = ?)', [functionId]],
         ['DELETE FROM Tasks WHERE functionId = ?', [functionId]],
-        ['DELETE FROM FunctionAssets WHERE functionId=?', [functionId]],
         ['DELETE FROM Functions WHERE functionId = ?', [functionId]],
     ];
 
@@ -259,7 +310,7 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
         true,
     );
     if (ownedFn instanceof Error) {
-        console.error(ownedFn);
+        debug(ownedFn);
         return res.status(500).send('db error');
     }
     if (ownedFn.length == 0) {
@@ -270,14 +321,12 @@ router.delete('/function/:functionId', requireAuthMiddleware, async (req, res) =
     deleteFunction(functionId)
         .then(() => res.status(200).send('ok'))
         .catch(e => {
-            console.error(e);
+            debug(e);
             res.status(500).send('db error');
         });
 });
 
 // Upload function asset
-import fileUpload, { UploadedFile } from 'express-fileupload';
-import { fstat, unlink, unlinkSync } from "fs";
 const fileUploadMiddleware = fileUpload({
     safeFileNames: true,
     preserveExtension: true,
@@ -319,7 +368,7 @@ router.post('/function/:functionId/asset/upload', requireAuthMiddleware, fileUpl
     Promise.all(proms)
         .then(() => res.send('ok'))
         .catch(err => {
-            console.error(err);
+            debug(err);
             res.status(500).send('failed to upload');
         });
 
@@ -332,7 +381,7 @@ router.get('/assets/:functionId/:fname', requireAuthMiddleware, async (req, res)
     res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`, err => {
         if (!err)
             return;
-        console.error(err);
+        debug(err);
         // TODO fallback to use database storage location
     });
 });

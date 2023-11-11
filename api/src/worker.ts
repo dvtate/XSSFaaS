@@ -7,7 +7,7 @@ import * as db from './db';
 import { Router } from 'express';
 const router = Router();
 
-import { requireAuthMiddleware } from './auth';
+import { requireAuthMiddleware, authUserSafe } from './auth';
 
 // Sends data about the worker so that we can add it to database
 // Gives back a workerId
@@ -76,12 +76,48 @@ router.post('/log/:taskId', requireAuthMiddleware, async (req, res) => {
 });
 
 // Get asset
-router.get('/asset/:functionId/:fname', async (req, res) => {
-    const { functionId, fname } = req.params;
+router.get('/asset/:authToken/:functionId/:fname', async (req, res) => {
+    const { functionId, fname, authToken } = req.params;
 
-    // TODO authentication
-    // TODO use location stored in database in case remote or something
-    // TODO should prob move all fs logic to dedicated file
+    // Authenticate
+    const user = await authUserSafe(decodeURIComponent(authToken));
+    if (user.error) {
+        debug(user.error);
+        return res.status(500).send('auth error');
+    }
+    if (!user.userId)
+        return res.status(403).send('unauthorized');
+
+    // Check for incomlete tasks
+    // TODO redis would be a better fit for this
+    const tasks = await db.queryProm('SELECT taskId FROM Tasks '
+        + 'WHERE endTs IS NULL AND functionId = ? AND workerId IN '
+        + '(SELECT workerId FROM Workers WHERE userId = ?)',
+        [functionId, user.userId],
+        true,
+    );
+    if (tasks instanceof Error) {
+        debug(tasks);
+        return res.status(500).send('db error');
+    }
+    if (tasks.length === 0)
+        return res.status(403).send('unauthorized');
+
+    // TODO use location stored in database in case multiple upload dirs
+    // const location = await db.queryProm(
+    //     'SELECT location FROM FunctionAssets WHERE functionId=? AND filename=?',
+    //     [functionId, fname],
+    //     true,
+    // );
+    // if (location instanceof Error) {
+    //     debug(location);
+    //     return res.status(500).send('db error');
+    // }
+    // if (location.length === 0)
+    //     return res.sendStatus(404);
+    // return res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`);
+
     res.sendFile(`${process.env.UPLOADS_DIR}/${functionId}/${fname}`);
 });
+
 export default router;

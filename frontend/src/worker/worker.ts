@@ -113,7 +113,7 @@ export default class WorkerApp {
     private async authenticate() {
         if (this.workerId === undefined) {
             await this.newWorkerId();
-        }
+        }        
         this.ws.send(new WsMessage(WsMessage.Type.AUTH, [this.authToken, String(this.workerId)]).toString());
         writeLog(new Log(Log.Type.S_INFO, 'Sent authentication request to router'));
         this.threads.forEach(t => t.auth());

@@ -44,14 +44,14 @@ async function getFn(id: string) {
     return jobFnCache[id]
         || (jobFnCache[id] = await import(
             /* webpackIgnore: true */
-            `${API_SERVER_URL}/worker/asset/${id}/index.js`
+            `${API_SERVER_URL}/worker/asset/${encodeURIComponent(authTokenRef.authToken)}/${id}/index.js`
         ));
 }
 
 let taskUtilsObject: TaskUtils = null;
 async function doTask(t: Task) {
     const m = await getFn(t.functionId);
-    taskUtilsObject = new TaskUtils(t);
+    taskUtilsObject = new TaskUtils(t, authTokenRef.authToken, workerId);
     await m.default(t.additionalData, taskUtilsObject);
     taskUtilsObject = null;
 }
