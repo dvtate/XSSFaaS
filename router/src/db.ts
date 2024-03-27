@@ -7,43 +7,43 @@ config();
 
 // Debugger
 import Debugger from 'debug';
-const debug = Debugger("xss:rtr:db");
+const debug = Debugger("xss:api:db");
 
 // Get config
-const rw_cred = JSON.parse(process.env.RW_DB);
-const rr_cred = JSON.parse(process.env.RO_DB);
-const sameCredentials = process.env.RO_DB === process.env.RW_DB;
+const rwCred = JSON.parse(process.env.RW_DB);
+const rrCred = JSON.parse(process.env.RO_DB);
+const sameCredentials = rwCred === rrCred;
 
 // Declare pools
-let pool_rw: mysql.Pool;
-let pool_rr: mysql.Pool;
+let poolRw: mysql.Pool;
+let poolRr: mysql.Pool;
 
 /**
  * Connect to database
  */
 export function begin() {
-    if (sameCredentials || !rr_cred) {
-        debug("Connecting to '%s'", rw_cred.host);
+    if (sameCredentials || !rrCred) {
+        debug("Connecting to '%s'", rwCred.host);
     } else {
-        debug("Connecting to '%s' and '%s'", rw_cred.host, rr_cred.host);
+        debug("Connecting to '%s' and '%s'", rwCred.host, rrCred.host);
     }
     if (!module.exports.connected) {
-        pool_rw = mysql.createPool({
-            host: rw_cred.host,
-            user: rw_cred.user,
-            password: rw_cred.password,
-            database: rw_cred.database,
+        poolRw = mysql.createPool({
+            host: rwCred.host,
+            user: rwCred.user,
+            password: rwCred.password,
+            database: rwCred.database,
             multipleStatements: true,
         });
 
         // read replica
-        pool_rr = sameCredentials || !rr_cred
-            ? pool_rw
+        poolRr = sameCredentials || !rrCred
+            ? poolRw
             : mysql.createPool({
-                host: rr_cred.host,
-                user: rr_cred.user,
-                password: rr_cred.password,
-                database: rr_cred.database,
+                host: rrCred.host,
+                user: rrCred.user,
+                password: rrCred.password,
+                database: rrCred.database,
             });
 
         module.exports.connected = true;
@@ -58,7 +58,7 @@ export function begin() {
  */
 export async function queryProm(query: string, params: any[] = [], ro: boolean = false): Promise<Error | any[]> {
     // Select database
-    let d = ro ? pool_rr : pool_rw;
+    let d = ro ? poolRr : poolRw;
     return new Promise(resolve => {
         try {
             // Perform query
@@ -87,13 +87,13 @@ export async function queryProm(query: string, params: any[] = [], ro: boolean =
  */
 export async function close() {
     new Promise(resolve =>
-        pool_rw.end(() =>
-            pool_rr.end(() => {
+        poolRw.end(() =>
+            poolRr.end(() => {
                 module.exports.connected = false;
                 resolve(undefined);
             }))
     );
 }
 
-module.exports.db = pool_rw;
-module.exports.rr = pool_rr;
+module.exports.db = poolRw;
+module.exports.rr = poolRr;
