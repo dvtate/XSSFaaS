@@ -42,8 +42,6 @@
                 except this one runs your functions in WebWorker threads.
                 Or alternatively you could self-host and use, for example, your own computer lab.</p>
 
-            <!-- Should probably address Security and Stability as these are kinda spooky -->
-
             <h2>How to use it?</h2>
             <p>Read <a href="https://github.com/dvtate/XSSFaaS/wiki" target="_blank">the wiki</a>!</p>
             <h2>Selfhosting?</h2>
@@ -52,14 +50,14 @@
             <h2>Relevant technologies</h2>
             <p>Some recent web technologies really make this concept more desireable notably the following:</p>
             <ul>
-                <li><a>WebRTC for inter-process communication</a></li> <!-- working on library for this -->
+                <li>WebRTC for inter-process communication</li>
                 <li>WebAssembly to deploy code from compiled languages and maximize performance</li>
                 <li>WebSockets for communication with a host server</li>
                 <li>WebGPU for rendering and parallel computations</li>
             </ul>
 
             <!-- stats -->
-            <h2>Statistics</h2>
+            <h2>Live Statistics</h2>
             <noscript>JavaScript Required to access statistics endpoint</noscript>
             <div class="ms-hero ms-small ms-primary">
                 <div class="ms-hero-body">
@@ -99,11 +97,21 @@
 
             <!--
             <h2>How it works</h2>
-            <p>This looks like a lot but really it's not.</p>
             <ul>
-                <li>Upload JavaScript file with default function export (along with any other relevant project files)</li>
+                <li>Upload JavaScript file that looks something like this
+			<code>
+			/**
+			 * Function for worker thread to run
+			 * @param arg {string} additional data provided by the caller
+			 * @param utils {TaskUtils} runtime utilities you may find useful
+			 */
+			export default async function (arg, utils) {
+				utils.log(`Function called with argument '${arg}'`);
+			}
+			</code>
+		</li>
                 <li>Specify any other policies and metadata assocaited with the function</li>
-                <li>Open a worker tab (or rely on others to donate their resources)</li>
+                <li>Open a worker tab</li>
                 <li>Use an API endpoint to send tasks to the function (which can include relevant data)</li>
             </ul>
 
